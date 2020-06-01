@@ -5,12 +5,12 @@ VisualStudioVersion = 16.0.30114.105
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Vidusaviya.shasra", "Vidusaviya.shasra\Vidusaviya.shasra.csproj", "{D02022AA-5F28-4123-A5BD-B803BA99FD12}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Vidusaviya.shasra.core", "Vidusaviya.shasra.core\Vidusaviya.shasra.core.csproj", "{07AF3F41-9991-4F6A-9A49-BD2F10E4D871}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{07526328-8876-49B7-B36B-B16E875617CE}"
 	ProjectSection(SolutionItems) = preProject
 		.editorconfig = .editorconfig
 	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Vidusaviya.shasra.Testing", "Vidusaviya.shasra.Testing\Vidusaviya.shasra.Testing.csproj", "{2F57EFD0-48E0-4CE6-8510-129E8DF17AC1}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -22,10 +22,10 @@ Global
 		{D02022AA-5F28-4123-A5BD-B803BA99FD12}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D02022AA-5F28-4123-A5BD-B803BA99FD12}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D02022AA-5F28-4123-A5BD-B803BA99FD12}.Release|Any CPU.Build.0 = Release|Any CPU
-		{07AF3F41-9991-4F6A-9A49-BD2F10E4D871}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{07AF3F41-9991-4F6A-9A49-BD2F10E4D871}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{07AF3F41-9991-4F6A-9A49-BD2F10E4D871}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{07AF3F41-9991-4F6A-9A49-BD2F10E4D871}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2F57EFD0-48E0-4CE6-8510-129E8DF17AC1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2F57EFD0-48E0-4CE6-8510-129E8DF17AC1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2F57EFD0-48E0-4CE6-8510-129E8DF17AC1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2F57EFD0-48E0-4CE6-8510-129E8DF17AC1}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
