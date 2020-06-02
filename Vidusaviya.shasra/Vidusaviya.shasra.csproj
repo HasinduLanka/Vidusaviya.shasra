@@ -11,16 +11,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="BlazorMedia" Version="0.2.333.326">
-      <ExcludeAssets>contentFiles</ExcludeAssets>
-    </PackageReference>
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="3.2.0" />
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Build" Version="3.2.0" PrivateAssets="all" />
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="3.2.0" PrivateAssets="all" />
-    <PackageReference Include="Microsoft.TypeScript.MSBuild" Version="3.9.2">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
     <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
     <PackageReference Include="System.Net.Http.Json" Version="3.2.0" />
   </ItemGroup>
