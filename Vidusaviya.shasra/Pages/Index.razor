@@ -1,7 +1,71 @@
 ﻿@page "/"
+@inject IJSRuntime JsRuntime
 
 <h1>Hello, world!</h1>
 
 Welcome to your new app.
 
-<SurveyPrompt Title="How is Blazor working for you?" />
+
+<h1>@stat</h1>
+
+<input type="button" @onclick="Capture" value="Start preview" />
+<input type="button" @onclick="ToggleRecording" value="@((IsRecording?"Stop recording":"Start recording"))" />
+
+<video id="video" width="320" height="240" autoplay></video>
+<br />
+<video id="video2" width="1280" height="720" autoplay></video>
+<br />
+
+<canvas id="capturedImage" width="320" height="240"></canvas>
+<canvas id="midcanvas" width="480" height="360"></canvas>
+<br />
+<h4>@msg</h4>
+
+
+
+@code  {
+    // style="display: none"
+
+    public string stat { get; set; }
+    public string msg { get; set; }
+    public bool IsRecording = false;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        await base.OnAfterRenderAsync(firstRender);
+
+        stat = await JsRuntime.InvokeAsync<string>("SayHi", "C Sharp");
+
+
+        stat = await JsRuntime.InvokeAsync<string>("StartPreview", Array.Empty<string>());
+
+    }
+
+    public async void Capture()
+    {
+
+
+        await JsRuntime.InvokeVoidAsync("Snap", "video", "capturedImage");
+        var imageBytes = await JsRuntime.InvokeAsync<string>("GetImageData", "capturedImage", "image/bmp");
+        // var data = Convert.FromBase64String(imageBytes); // get the image as byte array
+    }
+
+    public async void ToggleRecording()
+    {
+        IsRecording = !IsRecording;
+
+        if (IsRecording)
+        {
+            await JsRuntime.InvokeVoidAsync("StartRec");
+        }
+        else
+        {
+            await JsRuntime.InvokeVoidAsync("StopRec");
+            string dunno = await JsRuntime.InvokeAsync<string>("GetWCStream", null);
+            msg = dunno;
+            await this.InvokeAsync(StateHasChanged);
+        }
+    }
+
+
+}
