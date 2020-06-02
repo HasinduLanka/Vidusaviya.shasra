@@ -27,10 +27,10 @@ namespace Vidusaviya.shasra.Testing
             B = Encoding.UTF8.GetBytes(filecontent);
 
 
-            for (int i = 0; i < 2; i++)
+            for (int i = 0; i < 4; i++)
             {
                 new Thread(Benchmark).Start();
-                Thread.Sleep(5000);
+                Thread.Sleep(1000);
 
             }
 
