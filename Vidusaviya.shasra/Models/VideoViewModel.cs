@@ -33,9 +33,10 @@ namespace Vidusaviya.shasra.Models
                 await BlazorMediaAPI.StartListeningToDeviceChange();
                 await FetchDeviceListAsync();
                 BlazorMediaAPI.OnDeviceChanged += BlazorMedia_DeviceChanged;
+                await InvokeAsync(StateHasChanged);
             }
             await base.OnAfterRenderAsync(firstRender);
-            await InvokeAsync(StateHasChanged);
+            // 
         }
         protected void OnDataReceived(byte[] data)
         {
@@ -49,6 +50,7 @@ namespace Vidusaviya.shasra.Models
 
         protected async Task FetchDeviceListAsync()
         {
+            
             var Devices = await BlazorMediaAPI.EnumerateMediaDevices();
 
             foreach (MediaDeviceInfo mdi in Devices)
@@ -69,7 +71,7 @@ namespace Vidusaviya.shasra.Models
             }
             if (Cameras.Count > 0)
             {
-                SelectedCamera = Cameras[0].DeviceId;
+                SelectedCamera = Cameras[0].DeviceId;                
             }
         }
 

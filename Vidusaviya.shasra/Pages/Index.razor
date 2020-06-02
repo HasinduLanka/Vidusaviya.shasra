@@ -17,7 +17,7 @@ else
     <VideoMedia OnError="@OnError" Timeslice="33" Width="360" Height="244" RecordAudio="true" CameraDeviceId="@SelectedCamera" MicrophoneDeviceId="@SelectedMicrophone"></VideoMedia>
 }
 
-<button @onclick="@(()=>{ OnToggleRecordingPressed(); })">Toggle Recording</button>
+<button @onclick="@(()=>{ OnToggleRecordingPressed(); })">@((IsRecording?"Stop Recording":"Start recording"))</button>
 
 @if (Cameras.Count > 0)
 {
