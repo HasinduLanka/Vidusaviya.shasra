@@ -8,16 +8,19 @@ Welcome to your new app.
 
 <h1>@stat</h1>
 
-<input type="button" @onclick="Capture" value="Start preview" />
+<input type="button" @onclick="Capture" value="Capture" />
 <input type="button" @onclick="ToggleRecording" value="@((IsRecording?"Stop recording":"Start recording"))" />
 
-<video id="video" width="320" height="240" autoplay></video>
+<h6>Live Webcam</h6>
+<video id="video" width="480" height="360" autoplay></video>
+<h6>Compressed feed</h6>
+<canvas id="midcanvas" width="480" height="360"></canvas>
 <br />
+<h5>Peer simulation</h5>
 <video id="video2" width="1280" height="720" autoplay></video>
 <br />
 
 <canvas id="capturedImage" width="320" height="240"></canvas>
-<canvas id="midcanvas" width="480" height="360"></canvas>
 <br />
 <h4>@msg</h4>
 
@@ -29,6 +32,9 @@ Welcome to your new app.
     public string stat { get; set; }
     public string msg { get; set; }
     public bool IsRecording = false;
+
+    public System.Timers.Timer Timer;
+    public System.Diagnostics.Stopwatch Stopwatch = new System.Diagnostics.Stopwatch();
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -57,15 +63,53 @@ Welcome to your new app.
         if (IsRecording)
         {
             await JsRuntime.InvokeVoidAsync("StartRec");
+
+            RunLoop = true;
+
+            Timer = new System.Timers.Timer(LoopIntervel);
+            Timer.Elapsed += StreamLoop;
+
+            Stopwatch.Start();
+            Timer.Start();
+
+            // await this.InvokeAsync(StateHasChanged);
+
+
         }
         else
         {
+
+            RunLoop = false;
+            Timer.Stop();
+            Stopwatch.Stop();
+
+
             await JsRuntime.InvokeVoidAsync("StopRec");
-            string dunno = await JsRuntime.InvokeAsync<string>("GetWCStream", null);
-            msg = dunno;
-            await this.InvokeAsync(StateHasChanged);
+
+            // await this.InvokeAsync(StateHasChanged);
         }
     }
 
+
+    public long LoopIntervel = 500;
+    bool RunLoop = false;
+
+    public async void StreamLoop(object sender, System.Timers.ElapsedEventArgs e)
+    {
+        //Loop:
+
+        {
+            string bloburl = await JsRuntime.InvokeAsync<string>("GetWCStream", null);
+            if (bloburl != "")
+            {
+                msg = bloburl;
+                // await this.InvokeAsync(StateHasChanged);
+            }
+        }
+
+        //if (RunLoop)
+        //    goto Loop;
+
+    }
 
 }

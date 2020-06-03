@@ -20,7 +20,34 @@ var mediaRecorder;
 var camstream;
 var midcanvas;
 
+
+
+var video2;
+var Playlist = [];
+var IsPlaying = false;
+
+
 window.StartPreview = async () => {
+
+    console.log("Starting preview");
+
+    video2 = document.getElementById('video2');
+
+    video2.addEventListener('ended', (event) => {
+
+        if (Playlist.length == 0) {
+            IsPlaying = false;
+            console.log('Video end');
+        }
+        else {
+            video2.src = Playlist.shift();
+            video2.play();
+            console.log('Video Replaying');
+        }
+    });
+
+
+
     var video = document.getElementById('video');
 
     // Get access to the camera!
@@ -39,7 +66,7 @@ window.StartPreview = async () => {
                 (function loop() {
                     if (!$this.paused && !$this.ended) {
                         ctx.drawImage($this, 0, 0, 480, 360);
-                        setTimeout(loop, 1000 / 10); // drawing at 30fps
+                        setTimeout(loop, 1000 / 16); // drawing at 30fps
                     }
                 })();
             }, 0);
@@ -50,17 +77,29 @@ window.StartPreview = async () => {
             camstream = midcanvas.captureStream(8);
             return "Say cheese";
         });
-
-
     }
+
+
+
 }
+
+
+
+var IsRecording = false;
 var recordedChunks = [];
+var ChunkCount = 0;
+
 
 function handleDataAvailable(event) {
     if (event.data.size > 0) {
         recordedChunks.push(event.data);
+        ChunkCount += 1;
 
-        console.log("Recorder " + mediaRecorder.state + " data available " + (event.data.size / 8 / 1024) + " KB/s");
+        if (IsRecording) {
+            mediaRecorder.stop();
+            mediaRecorder.start(4000);
+        }
+        console.log("Recorder " + mediaRecorder.state + "  #" + ChunkCount + " data read " + (event.data.size / 1024) + " KB");
     }
 }
 
@@ -69,11 +108,16 @@ function handleDataAvailable(event) {
 window.StartRec = async () => {
 
     recordedChunks = [];
+    ChunkCount = 0;
+
     var options = {
         audioBitsPerSecond: 128000,
-        videoBitsPerSecond: 512000,
+        videoBitsPerSecond: 1024000,
         mimeType: 'video/webm'
     }
+
+    IsRecording = true;
+
     mediaRecorder = new MediaRecorder(camstream, options);
     mediaRecorder.ondataavailable = handleDataAvailable;
 
@@ -82,27 +126,50 @@ window.StartRec = async () => {
     console.log("recorder started");
 }
 
+
+
+
 window.StopRec = async () => {
+    IsRecording = false;
     console.log(mediaRecorder.state);
     console.log("recorder stopping");
     mediaRecorder.stop();
 }
 
 
+
 window.GetWCStream = async () => {
 
-    var video2 = document.getElementById('video2');
-    var superBuffer = new Blob(recordedChunks, { type: "video/webm" });
-    recordedChunks = [];
+    if (ChunkCount > 0) {
+        ChunkCount = 0;
 
-    var blb = window.URL.createObjectURL(superBuffer);
-    video2.src = blb;
-    return blb;
+        var superBuffer = new Blob(recordedChunks, { type: "video/webm" });
 
-    // Set the source of one <video> element to be a stream from another.
-    //var stream2 = video.captureStream(20);
-    //video2.srcObject = stream2;
-    //return stream2;
+        var blb = window.URL.createObjectURL(superBuffer);
+
+
+        if (IsPlaying == false) {
+
+            video2.src = blb;
+            video2.play();
+
+            console.log('Playlist started');
+            IsPlaying = true;
+        }
+        else {
+            Playlist.push(blb);
+            console.log('Added to playlist');
+        }
+
+
+        recordedChunks = [];
+
+
+        return blb;
+    }
+    return "";
+
+
 
 }
 
