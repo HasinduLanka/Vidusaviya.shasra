@@ -17,26 +17,29 @@ namespace Vidusaviya.shasra.Testing
 
 
 
-            string filecontent = "";
+            //string filecontent = "";
 
-            for (int i = 0; i < 20000; i++)
+            //for (int i = 0; i < 20000; i++)
+            //{
+            //    filecontent += $"Hello go files {i} times!\n";
+            //}
+
+            //B = Encoding.UTF8.GetBytes(filecontent);
+
+
+            //for (int i = 0; i < 2; i++)
+            //{
+            //    new Thread(Benchmark).Start();
+            //    Thread.Sleep(5000);
+
+            //}
+            var cli = new GitClient("hariwij", "fuckyoubitch");
+            foreach (var item in cli.GetFiles("Network-Usage-Meter","path"))
             {
-                filecontent += $"Hello go files {i} times!\n";
+                Console.WriteLine(item);
             }
 
-            B = Encoding.UTF8.GetBytes(filecontent);
-
-
-            for (int i = 0; i < 2; i++)
-            {
-                new Thread(Benchmark).Start();
-                Thread.Sleep(5000);
-
-            }
-
-
-
-
+            Console.ReadLine();
         }
 
         private static void Benchmark()
