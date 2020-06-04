@@ -3,14 +3,14 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.30114.105
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Vidusaviya.shasra", "Vidusaviya.shasra\Vidusaviya.shasra.csproj", "{D02022AA-5F28-4123-A5BD-B803BA99FD12}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Vidusaviya.shasra", "Vidusaviya.shasra\Vidusaviya.shasra.csproj", "{D02022AA-5F28-4123-A5BD-B803BA99FD12}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{07526328-8876-49B7-B36B-B16E875617CE}"
 	ProjectSection(SolutionItems) = preProject
 		.editorconfig = .editorconfig
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Vidusaviya.shasra.Testing", "Vidusaviya.shasra.Testing\Vidusaviya.shasra.Testing.csproj", "{2F57EFD0-48E0-4CE6-8510-129E8DF17AC1}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Vidusaviya.shasra.Testing", "Vidusaviya.shasra.Testing\Vidusaviya.shasra.Testing.csproj", "{2F57EFD0-48E0-4CE6-8510-129E8DF17AC1}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

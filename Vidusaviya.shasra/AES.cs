@@ -74,9 +74,9 @@ namespace Vidusaviya.shasra
             encryptedBytes = Encrypt(bytesToBeEncrypted, passwordBytes);
             return Convert.ToBase64String(encryptedBytes);
         }
-        public static string Decrypt(string decryptedText, byte[] passwordBytes)
+        public static string Decrypt(string ecryptedText, byte[] passwordBytes)
         {
-            byte[] bytesToBeDecrypted = Convert.FromBase64String(decryptedText);
+            byte[] bytesToBeDecrypted = Convert.FromBase64String(ecryptedText);
             passwordBytes = SHA256.Create().ComputeHash(passwordBytes);
 
             byte[] decryptedBytes = Decrypt(bytesToBeDecrypted, passwordBytes);
@@ -92,9 +92,9 @@ namespace Vidusaviya.shasra
         {
             return Convert.ToBase64String(Encrypt(Encoding.UTF8.GetBytes(text), Encoding.UTF8.GetBytes(password)));
         }
-        public static string Decrypt(string decryptedText, string password)
+        public static string Decrypt(string ecryptedText, string password)
         {
-            return Encoding.UTF8.GetString(Decrypt(Convert.FromBase64String(decryptedText), Encoding.UTF8.GetBytes(password)));
+            return Encoding.UTF8.GetString(Decrypt(Convert.FromBase64String(ecryptedText), Encoding.UTF8.GetBytes(password)));
         }
         private static int GetSaltSize(byte[] passwordBytes)
         {

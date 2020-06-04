@@ -1,29 +1,39 @@
-﻿@page "/"
-@inject IJSRuntime JsRuntime
-
-<h1>Hello, world!</h1>
-
-Welcome to your new app.
-
+﻿@inject IJSRuntime JsRuntime
 
 <h1>@stat</h1>
 
-<input type="button" @onclick="Capture" value="Capture" />
-<input type="button" @onclick="ToggleRecording" value="@((IsRecording?"Stop recording":"Start recording"))" />
-
-<h6>Live Webcam</h6>
-<video id="video" width="480" height="360" autoplay></video>
-<h6>Compressed feed</h6>
-<canvas id="midcanvas" width="480" height="360"></canvas>
-<br />
-<h5>Peer simulation</h5>
-<video id="video2" width="1280" height="720" autoplay></video>
-<br />
-
-<canvas id="capturedImage" width="320" height="240"></canvas>
-<br />
-<h4>@msg</h4>
-
+<input type="button" class="btn-sm btn-outline-primary" @onclick="Capture" value="Capture" />
+<input type="button" class="btn-sm btn-@(IsRecording?"danger":"success")" @onclick="ToggleRecording" value="@((IsRecording?"Stop recording":"Start recording"))" />
+<div class="row">
+    <div class="col-md-4">
+        <center>
+            <h6>Live Webcam</h6>
+            <video id="video" width="480" height="360" autoplay></video>
+        </center>
+    </div>
+    <div class="col-md-4">
+        <center>
+            <h6>Compressed feed</h6>
+            <canvas id="midcanvas" width="480" height="360"></canvas>
+        </center>
+    </div>
+    <div class="col-md-4">
+        <center>
+            <h6>Captured Video</h6>
+            <canvas id="capturedImage" width="320" height="240"></canvas>
+            <h4>@msg</h4>
+        </center>
+    </div>
+</div>
+<hr />
+<div class="row">
+    <div class="col-md-12">
+        <center>
+            <h5>Peer simulation</h5>
+            <video id="video2" width="1280" height="720" autoplay></video>
+        </center>
+    </div>
+</div>
 
 
 @code  {
