@@ -5,3 +5,6 @@ dotnet_diagnostic.CA1052.severity = silent
 
 # CS0649: Field 'GoFileServerResult.status' is never assigned to, and will always have its default value null
 dotnet_diagnostic.CS0649.severity = silent
+
+# CA1031: Do not catch general exception types
+dotnet_diagnostic.CA1031.severity = silent

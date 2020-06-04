@@ -47,11 +47,12 @@ namespace Vidusaviya.shasra
         public GoFileUploadInfo Upload(byte[] bytes, string filename)
         {
             HttpClient httpClient = new HttpClient();
-            MultipartFormDataContent form = new MultipartFormDataContent();
+            MultipartFormDataContent form = new MultipartFormDataContent
+            {
+                { new StringContent("My file description"), "description" },
 
-            form.Add(new StringContent("My file description"), "description");
-
-            form.Add(new ByteArrayContent(bytes), "filesUploaded", filename);
+                { new ByteArrayContent(bytes), "filesUploaded", filename }
+            };
             HttpResponseMessage response = httpClient.PostAsync($"https://{Server}.gofile.io/upload", form).Result;
 
             response.EnsureSuccessStatusCode();
@@ -89,13 +90,11 @@ namespace Vidusaviya.shasra
             // Console.WriteLine($"upload \n {resgu.Content.ReadAsStringAsync().Result}\n");
         }
 
-        public string Download(string URL)
+        public static string Download(string URL)
         {
-            HttpClient httpClient = new HttpClient();
-            var res = httpClient.GetStringAsync(URL).Result;
+            using HttpClient httpClient = new HttpClient();
+            return httpClient.GetStringAsync(URL).Result;
 
-
-            return res;
         }
     }
 
