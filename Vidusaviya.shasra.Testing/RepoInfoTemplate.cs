@@ -4,7 +4,7 @@ using System.Text;
 
 namespace Vidusaviya.shasra.Testing
 {
-    class RepoInfo_Template
+    class RepoInfo
     {
         public static string vidup = "";
         public static string GitUsername = "";

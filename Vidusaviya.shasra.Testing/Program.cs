@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Text;
 using System.Threading;
 
@@ -23,36 +24,68 @@ namespace Vidusaviya.shasra.Testing
         {
             Console.WriteLine("Vidusaviya Shasra");
 
+            FireBaseClient fc = new FireBaseClient("", File.ReadAllText(@""));
 
+            // Write
+            var writeRes = fc.WriteDocument("rooms", "room1", new Dictionary<string, object> { { "Data", "Your Data" } });
+            writeRes.Wait();
+            Console.WriteLine($"Writing Result : {writeRes.Result}");
 
-            filecontent = "";
-
-            for (int i = 0; i < 4000; i++)
+            // Read Docs In Collection
+            var readcolRes = fc.ReadDocuments("rooms");
+            readcolRes.Wait();
+            Console.WriteLine($"Reading Collection :");
+            foreach (var item in readcolRes.Result)
             {
-                filecontent += $"Hello github {i} times!\n";
+                Console.WriteLine($"[Id : {item.Id}] [Path : {item.Reference.Path}]");
+            }
+            // Read Doc
+            var readRes = fc.ReadDocument("rooms", "room1");
+            readRes.Wait();
+            Console.WriteLine($"Reading :");
+            foreach (var item in readRes.Result.ToDictionary())
+            {
+                Console.WriteLine($"[Key : {item.Key}] [Value : {item.Value}]");
             }
 
-            // B = Convert.FromBase64String(filecontent);
-            Console.WriteLine($"File size {filecontent.Length / 1024} kB");
-            B = new byte[10];
+            // Read Data In Doc
+            var readDocRes = fc.ReadData("rooms", "room1","Data");
+            readDocRes.Wait();
+            Console.WriteLine($"Reading Data : {readDocRes.Result}");
+
+            ////Delete
+            //var deleteRes = fc.DeleteDocument("rooms", "room1");
+            //deleteRes.Wait();
+            //Console.WriteLine($"Delete Result : {deleteRes.Result}");
+
+            //filecontent = "";
+
+            //for (int i = 0; i < 4000; i++)
+            //{
+            //    filecontent += $"Hello github {i} times!\n";
+            //}
+
+            //// B = Convert.FromBase64String(filecontent);
+            //Console.WriteLine($"File size {filecontent.Length / 1024} kB");
+            //B = new byte[10];
 
 
-            GitFileClient octo = new GitFileClient(GitUsername, GitPassword, GitRepo, GitPath, FilePrefix);
-            foreach (var item in octo.GetFiles())
-            {
-                Console.WriteLine(item);
-            }
+            //GitFileClient octo = new GitFileClient(GitUsername, GitPassword, GitRepo, GitPath, FilePrefix);
+            //foreach (var item in octo.GetFiles())
+            //{
+            //    Console.WriteLine(item);
+            //}
 
 
 
-            for (int i = 1; i < 3; i++)
-            {
-                new Thread(GithubBenchmarkUpload) { Name = "Upload " + i.ToString() }.Start(i.ToString());
-                Thread.Sleep(500);
-                new Thread(GithubBenchmarkDownload) { Name = "Download " + i.ToString() }.Start();
-                Thread.Sleep(500);
+            //for (int i = 1; i < 3; i++)
+            //{
+            //    new Thread(GithubBenchmarkUpload) { Name = "Upload " + i.ToString() }.Start(i.ToString());
+            //    Thread.Sleep(500);
+            //    new Thread(GithubBenchmarkDownload) { Name = "Download " + i.ToString() }.Start();
+            //    Thread.Sleep(500);
 
-            }
+            //}
 
 
 
