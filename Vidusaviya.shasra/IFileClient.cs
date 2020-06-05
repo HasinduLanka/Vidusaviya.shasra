@@ -9,12 +9,13 @@ namespace Vidusaviya.shasra
     public interface IFileClient<T>
     {
         public bool IsReadOnly { get; }
-        public Task<T> Upload(string FileSuffix, T Data);
-        public Task<T> Update(string FileSuffix, T Data);
-        public Task<T> Delete(string FileSuffix);
-        public Task<T> Download(string FileSuffix);
-        public Task<string> DownloadFromURL(string URL);
-        public int GetLastFileIndex();
+        public Task<T> Upload(string FileName, T Data);
+        public Task<T> Update(string FileName, T Data);
+        public Task<T> Delete(string FileName);
+        public Task DeleteAll();
+        public Task<T> Download(string FileName);
+        public Task<T> DownloadFromURL(string URL);
+        public Task<int> GetLastFileIndex();
     }
 
 

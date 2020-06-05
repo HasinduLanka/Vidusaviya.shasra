@@ -16,6 +16,9 @@
 </div>
 
 
+<h6>(@RunLoop?"⬤":"⏹")</h6>
+
+
 @code  {
 
     public string stat { get; set; }
@@ -69,7 +72,7 @@
 
 
     public long LoopIntervel = 500;
-    bool RunLoop = false;
+    public bool RunLoop = false;
 
     public async void StreamLoop(object sender, System.Timers.ElapsedEventArgs e)
     {

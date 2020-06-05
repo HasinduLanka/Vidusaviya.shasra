@@ -18,7 +18,7 @@ namespace Vidusaviya.shasra
         public GitClient(string username, string password)
         {
             Username = username;
-            Client = new GitHubClient(new ProductHeaderValue("ViduSaviya"))
+            Client = new GitHubClient(new ProductHeaderValue("ViduSaviya" + DateTime.Now.Millisecond.ToString()))
             {
                 Credentials = new Credentials(username, password)
             };
@@ -27,21 +27,34 @@ namespace Vidusaviya.shasra
         }
         public async Task<string> UploadFile(string Repo, string gitPath, string data, string branch = "master")
         {
-            await Client.Repository.Content.CreateFile(Username, Repo, gitPath, new CreateFileRequest($"Add => {gitPath}", data, branch));
+            await Client.Repository.Content.CreateFile(Username, Repo, gitPath, new CreateFileRequest($"{gitPath}", data, branch));
             return $"https://raw.githubusercontent.com/{Username}/{Repo}/{branch}/{gitPath}";
         }
         public async Task<string> UpdateFile(string Repo, string gitPath, string data, string branch = "master")
         {
             var res = Client.Repository.Content.GetAllContents(Username, Repo, gitPath).Result.First();
-            await Client.Repository.Content.UpdateFile(Username, Repo, gitPath, new UpdateFileRequest($"Update => {gitPath}", data, res.Sha, branch));
+            await Client.Repository.Content.UpdateFile(Username, Repo, gitPath, new UpdateFileRequest($"{gitPath}", data, res.Sha, branch));
             return $"https://raw.githubusercontent.com/{Username}/{Repo}/{branch}/{gitPath}";
         }
         public async Task<string> DeleteFile(string Repo, string gitPath, string branch = "master")
         {
             var res = Client.Repository.Content.GetAllContents(Username, Repo, gitPath).Result.First();
-            await Client.Repository.Content.DeleteFile(Username, Repo, gitPath, new DeleteFileRequest($"Delete => {gitPath}", res.Sha, branch));
+            await Client.Repository.Content.DeleteFile(Username, Repo, gitPath, new DeleteFileRequest($"{gitPath}", res.Sha, branch));
             return $"https://raw.githubusercontent.com/{Username}/{Repo}/{branch}/{gitPath}";
         }
+
+
+        public async Task DeleteAll(string Repo, string gitPath, string branch = "master")
+        {
+            foreach (var item in await Client.Repository.Content.GetAllContents(Username, Repo, gitPath))
+            {
+                await Client.Repository.Content.DeleteFile(Username, Repo, gitPath + '/' + item.Name, new DeleteFileRequest($"{gitPath}", item.Sha, branch));
+                //  Console.WriteLine($"Deleted {gitPath}/{item.Name}");
+            }
+
+        }
+
+
 
         public async Task<string> DownloadFile(string Repo, string gitPath, string branch = "master")
         {
@@ -56,20 +69,40 @@ namespace Vidusaviya.shasra
 
         public IEnumerable<string> GetFiles(string Repo, string Path)
         {
-            foreach (var item in Client.Repository.Content.GetAllContents(Username, Repo, Path).Result)
+            IReadOnlyList<RepositoryContent> result;
+
+            try
+            {
+                result = Client.Repository.Content.GetAllContents(Username, Repo, Path).Result;
+            }
+            catch (Exception)
+            {
+                yield break;
+            }
+
+            foreach (var item in result)
             {
                 yield return item.Name;
             }
         }
 
-        public int GetLastFileIndex(string Repo, string Path, string FilePrefix)
+        public async Task<int> GetLastFileIndex(string Repo, string Path)
         {
-            IReadOnlyList<RepositoryContent> result = Client.Repository.Content.GetAllContents(Username, Repo, Path).Result;
+            IReadOnlyList<RepositoryContent> result;
+
+            try
+            {
+                result = await Client.Repository.Content.GetAllContents(Username, Repo, Path);
+            }
+            catch (Exception)
+            {
+                return -1;
+            }
 
             int max = 0;
             foreach (var file in result)
             {
-                if (file.Name.Length > FilePrefix.Length && file.Name.Substring(0, FilePrefix.Length) == FilePrefix && int.TryParse(file.Name.Substring(FilePrefix.Length), out int fi))
+                if (int.TryParse(file.Name, out int fi))
                 {
                     max = max > fi ? max : fi;
                 }
@@ -123,10 +156,9 @@ namespace Vidusaviya.shasra
             return await HttpClient.GetStringAsync(URL);
         }
 
-        public int GetLastFileIndex()
-        {
-            return -1;
-        }
+        public Task<int> GetLastFileIndex() => new Task<int>(() => -1);
+
+        public Task DeleteAll() => null;
     }
 
     public class GitFileClient : IFileClient<string>
@@ -135,41 +167,39 @@ namespace Vidusaviya.shasra
         public string Repo;
         public string Branch;
         public string Path;
-        public string FilePrefix;
 
         public GitClient GitClient;
 
         public bool IsReadOnly => false;
 
-        public GitFileClient(string username, string password, string repo, string path, string filePrefix, string branch = "master")
+        public GitFileClient(string username, string password, string repo, string path, string branch = "master")
         {
             Username = username;
             Repo = repo;
             Branch = branch;
             Path = path;
-            FilePrefix = filePrefix;
 
             GitClient = new GitClient(username, password);
 
         }
 
 
-        public async Task<string> Upload(string FileSuffix, string Data)
+        public async Task<string> Upload(string FileName, string Data)
         {
-            return await GitClient.UploadFile(Repo, Path + '/' + FilePrefix + FileSuffix, Data, Branch);
+            return await GitClient.UploadFile(Repo, Path + '/' + FileName, Data, Branch);
         }
-        public async Task<string> Update(string FileSuffix, string Data)
+        public async Task<string> Update(string FileName, string Data)
         {
-            return await GitClient.UpdateFile(Repo, Path + '/' + FilePrefix + FileSuffix, Data, Branch);
+            return await GitClient.UpdateFile(Repo, Path + '/' + FileName, Data, Branch);
         }
-        public async Task<string> Delete(string FileSuffix)
+        public async Task<string> Delete(string FileName)
         {
-            return await GitClient.DeleteFile(Repo, Path + '/' + FilePrefix + FileSuffix, Branch);
+            return await GitClient.DeleteFile(Repo, Path + '/' + FileName, Branch);
         }
 
-        public async Task<string> Download(string FileSuffix)
+        public async Task<string> Download(string FileName)
         {
-            return await GitClient.DownloadFile(Repo, Path + '/' + FilePrefix + FileSuffix, Branch);
+            return await GitClient.DownloadFile(Repo, Path + '/' + FileName, Branch);
         }
 
         public async Task<string> DownloadFromURL(string URL)
@@ -179,8 +209,35 @@ namespace Vidusaviya.shasra
 
 
         public IEnumerable<string> GetFiles() => GitClient.GetFiles(Repo, Path);
-        public int GetLastFileIndex() => GitClient.GetLastFileIndex(Repo, Path, FilePrefix);
+        public async Task<int> GetLastFileIndex()
+        {
+            int i = await GitClient.GetLastFileIndex(Repo, Path);
 
+            if (i == -1)
+            {
+                //Create room
+                i = 0;
+                await GitClient.UploadFile(Repo, Path + '/' + "index", i.ToString(), Branch);
+            }
+            else
+            {
+                try
+                {
+                    await GitClient.UpdateFile(Repo, Path + '/' + "index", i.ToString(), Branch);
+                }
+                catch (Exception)
+                {
+                    await GitClient.UploadFile(Repo, Path + '/' + "index", i.ToString(), Branch);
+                }
+
+            }
+            return i;
+        }
+
+        public async Task DeleteAll()
+        {
+            await GitClient.DeleteAll(Repo, Path, Branch);
+        }
 
     }
 }

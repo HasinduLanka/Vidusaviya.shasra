@@ -16,7 +16,6 @@ namespace Vidusaviya.shasra.Testing
         private readonly static string GitPassword = RepoInfo.vidup;
         private readonly static string GitRepo = RepoInfo.GitRepo;
         private readonly static string GitPath = RepoInfo.GitPath;
-        private readonly static string FilePrefix = RepoInfo.FilePrefix;
 
         static string filecontent;
 
@@ -29,67 +28,35 @@ namespace Vidusaviya.shasra.Testing
         {
             Console.WriteLine("Vidusaviya Shasra");
 
-            FireBaseClient fc = new FireBaseClient("", File.ReadAllText(@""));
+            // TestFirebase();
 
-            // Write
-            var writeRes = fc.WriteDocument("rooms", "room1", new Dictionary<string, object> { { "Data", "Your Data" } });
-            writeRes.Wait();
-            Console.WriteLine($"Writing Result : {writeRes.Result}");
 
-            // Read Docs In Collection
-            var readcolRes = fc.ReadDocuments("rooms");
-            readcolRes.Wait();
-            Console.WriteLine($"Reading Collection :");
-            foreach (var item in readcolRes.Result)
-            {
-                Console.WriteLine($"[Id : {item.Id}] [Path : {item.Reference.Path}]");
-            }
-            // Read Doc
-            var readRes = fc.ReadDocument("rooms", "room1");
-            readRes.Wait();
-            Console.WriteLine($"Reading :");
-            foreach (var item in readRes.Result.ToDictionary())
-            {
-                Console.WriteLine($"[Key : {item.Key}] [Value : {item.Value}]");
-            }
-
-            // B = Convert.FromBase64String(filecontent);
-            Console.WriteLine($"File size {filecontent.Length / 1024} kB");
-            // Read Data In Doc
-            var readDocRes = fc.ReadData("rooms", "room1","Data");
-            readDocRes.Wait();
-            Console.WriteLine($"Reading Data : {readDocRes.Result}");
-
-            ////Delete
-            //var deleteRes = fc.DeleteDocument("rooms", "room1");
-            //deleteRes.Wait();
-            //Console.WriteLine($"Delete Result : {deleteRes.Result}");
-
-            //filecontent = "";
-
-            //for (int i = 0; i < 4000; i++)
-            //{
-            //    filecontent += $"Hello github {i} times!\n";
-            //}
-
-            //// B = Convert.FromBase64String(filecontent);
-            //Console.WriteLine($"File size {filecontent.Length / 1024} kB");
-            //B = new byte[10];
 
             fileAsyncManager = new FileAsyncManager<string>(2);
 
             for (int i = 0; i < 2; i++)
             {
-                fileAsyncManager.Threads[i] = new FileAsyncThread<string>(new GitFileClient(GitUsername, GitPassword, GitRepo + (i + 1).ToString(), GitPath, FilePrefix));
-                fileAsyncManager.Threads[i].LastFileIndex = fileAsyncManager.Threads[i].FileClient.GetLastFileIndex();
-                Console.WriteLine($"{i}. Selected LastFileIndex {fileAsyncManager.Threads[i].LastFileIndex}");
+                var thr = new FileAsyncThread<string>(new GitFileClient(GitUsername, GitPassword, GitRepo + (i + 1).ToString(), GitPath));
+                fileAsyncManager.Threads[i] = thr;
+                //thr.FileClient.DeleteAll().Wait();
+                thr.LastFileIndex = thr.FileClient.GetLastFileIndex().Result;
+                Console.WriteLine($"{i}. Selected LastFileIndex {thr.LastFileIndex}");
+            }
+
+
+
+            filecontent = "";
+
+            for (int i = 0; i < 4000; i++)
+            {
+                filecontent += $"Hello github {i} times!\n";
             }
 
 
             DownloadAsyncManager = new FileAsyncManager<string>(2);
             for (int i = 0; i < 2; i++)
             {
-                DownloadAsyncManager.Threads[i] = new FileAsyncThread<string>(new GitDownloadCient(GitUsername, GitRepo + (i + 1).ToString(), GitPath, FilePrefix));
+                DownloadAsyncManager.Threads[i] = new FileAsyncThread<string>(new GitDownloadCient(GitUsername, GitRepo + (i + 1).ToString(), GitPath));
             }
 
 
@@ -118,8 +85,50 @@ namespace Vidusaviya.shasra.Testing
             Console.ReadLine();
         }
 
+        public static void TestFirebase()
+        {
+            FireBaseClient fc = new FireBaseClient("", File.ReadAllText(@""));
+
+            // Write
+            var writeRes = fc.WriteDocument("rooms", "room1", new Dictionary<string, object> { { "Data", "Your Data" } });
+            writeRes.Wait();
+            Console.WriteLine($"Writing Result : {writeRes.Result}");
+
+            // Read Docs In Collection
+            var readcolRes = fc.ReadDocuments("rooms");
+            readcolRes.Wait();
+            Console.WriteLine($"Reading Collection :");
+            foreach (var item in readcolRes.Result)
+            {
+                Console.WriteLine($"[Id : {item.Id}] [Path : {item.Reference.Path}]");
+            }
+            // Read Doc
+            var readRes = fc.ReadDocument("rooms", "room1");
+            readRes.Wait();
+            Console.WriteLine($"Reading :");
+            foreach (var item in readRes.Result.ToDictionary())
+            {
+                Console.WriteLine($"[Key : {item.Key}] [Value : {item.Value}]");
+            }
+
+            // B = Convert.FromBase64String(filecontent);
+            Console.WriteLine($"File size {filecontent.Length / 1024} kB");
+            // Read Data In Doc
+            var readDocRes = fc.ReadData("rooms", "room1", "Data");
+            readDocRes.Wait();
+            Console.WriteLine($"Reading Data : {readDocRes.Result}");
+
+            ////Delete
+            //var deleteRes = fc.DeleteDocument("rooms", "room1");
+            //deleteRes.Wait();
+            //Console.WriteLine($"Delete Result : {deleteRes.Result}");
 
 
+
+            //// B = Convert.FromBase64String(filecontent);
+            //Console.WriteLine($"File size {filecontent.Length / 1024} kB");
+            //B = new byte[10];
+        }
 
         static bool TimerVoiding = false;
 
