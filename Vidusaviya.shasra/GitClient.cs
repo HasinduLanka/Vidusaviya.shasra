@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using Octokit;
 
@@ -12,6 +13,7 @@ namespace Vidusaviya.shasra
     public class GitClient
     {
         private readonly GitHubClient Client;
+        private readonly HttpClient httpClient;
         private readonly string Username;
         public GitClient(string username, string password)
         {
@@ -20,6 +22,8 @@ namespace Vidusaviya.shasra
             {
                 Credentials = new Credentials(username, password)
             };
+
+            httpClient = new HttpClient();
         }
         public async Task<string> UploadFile(string Repo, string gitPath, string data, string branch = "master")
         {
@@ -44,9 +48,8 @@ namespace Vidusaviya.shasra
             return await Download($"https://raw.githubusercontent.com/{Username}/{Repo}/{branch}/{gitPath}");
         }
 
-        public static async Task<string> Download(string URL)
+        public async Task<string> Download(string URL)
         {
-            using HttpClient httpClient = new HttpClient();
             return await httpClient.GetStringAsync(URL);
 
         }
@@ -66,7 +69,7 @@ namespace Vidusaviya.shasra
             int max = 0;
             foreach (var file in result)
             {
-                if (file.Name.Length > FilePrefix.Length && file.Name.Substring(0,FilePrefix.Length) == FilePrefix && int.TryParse(file.Name.Substring(FilePrefix.Length), out int fi))
+                if (file.Name.Length > FilePrefix.Length && file.Name.Substring(0, FilePrefix.Length) == FilePrefix && int.TryParse(file.Name.Substring(FilePrefix.Length), out int fi))
                 {
                     max = max > fi ? max : fi;
                 }
@@ -75,8 +78,58 @@ namespace Vidusaviya.shasra
         }
     }
 
+    public class GitDownloadCient : IFileClient<string>
+    {
+        public string URLPrefix;
+        public HttpClient HttpClient;
 
-    public class GitFileClient
+        public bool IsReadOnly => true;
+
+        public GitDownloadCient(string uRLPrefix)
+        {
+            URLPrefix = uRLPrefix;
+            HttpClient = new HttpClient();
+        }
+
+        public GitDownloadCient(string Username, string Repo, string gitPath, string branch = "master")
+        {
+            URLPrefix = $"https://raw.githubusercontent.com/{Username}/{Repo}/{branch}/{gitPath}";
+            HttpClient = new HttpClient();
+        }
+
+        public Task<string> Upload(string FileSuffix, string Data)
+        {
+            return null;
+        }
+
+        public Task<string> Update(string FileSuffix, string Data)
+        {
+            return null;
+        }
+
+        public Task<string> Delete(string FileSuffix)
+        {
+            return null;
+        }
+
+
+        public async Task<string> Download(string FileSuffix)
+        {
+            return await HttpClient.GetStringAsync(URLPrefix + FileSuffix);
+        }
+
+        public async Task<string> DownloadFromURL(string URL)
+        {
+            return await HttpClient.GetStringAsync(URL);
+        }
+
+        public int GetLastFileIndex()
+        {
+            return -1;
+        }
+    }
+
+    public class GitFileClient : IFileClient<string>
     {
         public string Username;
         public string Repo;
@@ -85,6 +138,8 @@ namespace Vidusaviya.shasra
         public string FilePrefix;
 
         public GitClient GitClient;
+
+        public bool IsReadOnly => false;
 
         public GitFileClient(string username, string password, string repo, string path, string filePrefix, string branch = "master")
         {
@@ -117,13 +172,15 @@ namespace Vidusaviya.shasra
             return await GitClient.DownloadFile(Repo, Path + '/' + FilePrefix + FileSuffix, Branch);
         }
 
-        public static async Task<string> DownloadFromURL(string URL)
+        public async Task<string> DownloadFromURL(string URL)
         {
-            return await Vidusaviya.shasra.GitClient.Download(URL);
+            return await GitClient.Download(URL);
         }
 
 
         public IEnumerable<string> GetFiles() => GitClient.GetFiles(Repo, Path);
         public int GetLastFileIndex() => GitClient.GetLastFileIndex(Repo, Path, FilePrefix);
+
+
     }
 }
