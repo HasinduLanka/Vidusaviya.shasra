@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
@@ -28,18 +29,52 @@ namespace Vidusaviya.shasra.Testing
         {
             Console.WriteLine("Vidusaviya Shasra");
 
+            FireBaseClient fc = new FireBaseClient("", File.ReadAllText(@""));
 
+            // Write
+            var writeRes = fc.WriteDocument("rooms", "room1", new Dictionary<string, object> { { "Data", "Your Data" } });
+            writeRes.Wait();
+            Console.WriteLine($"Writing Result : {writeRes.Result}");
 
-            filecontent = "";
-
-            for (int i = 0; i < 4000; i++)
+            // Read Docs In Collection
+            var readcolRes = fc.ReadDocuments("rooms");
+            readcolRes.Wait();
+            Console.WriteLine($"Reading Collection :");
+            foreach (var item in readcolRes.Result)
             {
-                filecontent += $"Hello github {i} times!\n";
+                Console.WriteLine($"[Id : {item.Id}] [Path : {item.Reference.Path}]");
+            }
+            // Read Doc
+            var readRes = fc.ReadDocument("rooms", "room1");
+            readRes.Wait();
+            Console.WriteLine($"Reading :");
+            foreach (var item in readRes.Result.ToDictionary())
+            {
+                Console.WriteLine($"[Key : {item.Key}] [Value : {item.Value}]");
             }
 
             // B = Convert.FromBase64String(filecontent);
             Console.WriteLine($"File size {filecontent.Length / 1024} kB");
+            // Read Data In Doc
+            var readDocRes = fc.ReadData("rooms", "room1","Data");
+            readDocRes.Wait();
+            Console.WriteLine($"Reading Data : {readDocRes.Result}");
 
+            ////Delete
+            //var deleteRes = fc.DeleteDocument("rooms", "room1");
+            //deleteRes.Wait();
+            //Console.WriteLine($"Delete Result : {deleteRes.Result}");
+
+            //filecontent = "";
+
+            //for (int i = 0; i < 4000; i++)
+            //{
+            //    filecontent += $"Hello github {i} times!\n";
+            //}
+
+            //// B = Convert.FromBase64String(filecontent);
+            //Console.WriteLine($"File size {filecontent.Length / 1024} kB");
+            //B = new byte[10];
 
             fileAsyncManager = new FileAsyncManager<string>(2);
 
