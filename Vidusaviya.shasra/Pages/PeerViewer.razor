@@ -1,0 +1,92 @@
+﻿@inject IJSRuntime JsRuntime
+@page "/viewer"
+
+<h1>@stat</h1>
+<h3>@msg</h3>
+<input type="button" class="btn-sm btn-@(IsViewing?"danger":"success")" @onclick="ToggleViewing" value="@((IsViewing?"Stop viewing":"Start viewing"))" />
+
+<hr />
+<div class="row">
+    <div class="col-md-12">
+        <center>
+            <h5>Video Feed</h5>
+            <video id="video2" width="1280" height="720" autoplay></video>
+        </center>
+    </div>
+</div>
+
+
+@code  {
+
+    public string stat { get; set; }
+    public string msg { get; set; }
+    public bool IsViewing = false;
+
+    public System.Timers.Timer Timer;
+    public System.Diagnostics.Stopwatch Stopwatch = new System.Diagnostics.Stopwatch();
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        await base.OnAfterRenderAsync(firstRender);
+
+
+    }
+
+
+
+    public async void ToggleViewing()
+    {
+        IsViewing = !IsViewing;
+
+        if (IsViewing)
+        {
+            stat = await JsRuntime.InvokeAsync<string>("SayHi", "C Sharp");
+
+            RunLoop = true;
+
+            Timer = new System.Timers.Timer(LoopIntervel);
+            Timer.Elapsed += StreamLoop;
+
+            Stopwatch.Start();
+            Timer.Start();
+
+            // await this.InvokeAsync(StateHasChanged);
+
+
+        }
+        else
+        {
+
+            RunLoop = false;
+            Timer.Stop();
+            Stopwatch.Stop();
+
+
+
+            // await this.InvokeAsync(StateHasChanged);
+        }
+    }
+
+
+    public long LoopIntervel = 500;
+    bool RunLoop = false;
+
+    public async void StreamLoop(object sender, System.Timers.ElapsedEventArgs e)
+    {
+        //Loop:
+
+        {
+            string bloburl = await JsRuntime.InvokeAsync<string>("GetWCStream", null);
+            if (bloburl != "")
+            {
+                msg = bloburl;
+                // await this.InvokeAsync(StateHasChanged);
+            }
+        }
+
+        //if (RunLoop)
+        //    goto Loop;
+
+    }
+
+}
