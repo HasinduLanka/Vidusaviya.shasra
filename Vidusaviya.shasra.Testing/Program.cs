@@ -2,9 +2,10 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
+using System.Runtime.InteropServices;
 using System.Text;
-using System.Threading;
+using System.Threading.Tasks;
+using System.Timers;
 
 namespace Vidusaviya.shasra.Testing
 {
@@ -17,7 +18,10 @@ namespace Vidusaviya.shasra.Testing
         private readonly static string FilePrefix = RepoInfo.FilePrefix;
 
         static string filecontent;
-        static byte[] B;
+
+
+        static FileAsyncManager<string> fileAsyncManager;
+        static FileAsyncManager<string> DownloadAsyncManager;
 
 
         static void Main()
@@ -48,6 +52,8 @@ namespace Vidusaviya.shasra.Testing
                 Console.WriteLine($"[Key : {item.Key}] [Value : {item.Value}]");
             }
 
+            // B = Convert.FromBase64String(filecontent);
+            Console.WriteLine($"File size {filecontent.Length / 1024} kB");
             // Read Data In Doc
             var readDocRes = fc.ReadData("rooms", "room1","Data");
             readDocRes.Wait();
@@ -69,13 +75,32 @@ namespace Vidusaviya.shasra.Testing
             //Console.WriteLine($"File size {filecontent.Length / 1024} kB");
             //B = new byte[10];
 
+            fileAsyncManager = new FileAsyncManager<string>(2);
 
-            //GitFileClient octo = new GitFileClient(GitUsername, GitPassword, GitRepo, GitPath, FilePrefix);
-            //foreach (var item in octo.GetFiles())
-            //{
-            //    Console.WriteLine(item);
-            //}
+            for (int i = 0; i < 2; i++)
+            {
+                fileAsyncManager.Threads[i] = new FileAsyncThread<string>(new GitFileClient(GitUsername, GitPassword, GitRepo + (i + 1).ToString(), GitPath, FilePrefix));
+                fileAsyncManager.Threads[i].LastFileIndex = fileAsyncManager.Threads[i].FileClient.GetLastFileIndex();
+                Console.WriteLine($"{i}. Selected LastFileIndex {fileAsyncManager.Threads[i].LastFileIndex}");
+            }
 
+
+            DownloadAsyncManager = new FileAsyncManager<string>(2);
+            for (int i = 0; i < 2; i++)
+            {
+                DownloadAsyncManager.Threads[i] = new FileAsyncThread<string>(new GitDownloadCient(GitUsername, GitRepo + (i + 1).ToString(), GitPath, FilePrefix));
+            }
+
+
+            stopwatchUpload = new Stopwatch();
+            stopwatchUpload.Start();
+
+            stopwatchDownload = new Stopwatch();
+            stopwatchDownload.Start();
+
+            Timer timer = new Timer(100);
+            timer.Elapsed += Timer_Elapsed;
+            timer.Start();
 
 
             //for (int i = 1; i < 3; i++)
@@ -93,129 +118,116 @@ namespace Vidusaviya.shasra.Testing
         }
 
 
+
+
+        static bool TimerVoiding = false;
+
         public static Queue<string> uploads = new Queue<string>();
-        private async static void GithubBenchmarkUpload(object o)
+        public static Stopwatch stopwatchUpload;
+        public static Stopwatch stopwatchDownload;
+
+        private async static void Timer_Elapsed(object sender, ElapsedEventArgs e)
+        {
+            if (TimerVoiding) return;
+
+
+            TimerVoiding = true;
+
+            await GithubBenchmarkUpload();
+            await GithubBenchmarkDownload();
+
+            TimerVoiding = false;
+
+        }
+
+
+
+        private async static Task GithubBenchmarkUpload()
         {
 
-            string ThrID = (string)o;
-            var octo1 = new GitFileClient(GitUsername, GitPassword, GitRepo + ThrID, GitPath, FilePrefix);
 
-            int LastFileIndex = octo1.GetLastFileIndex() + 1;
-            Console.WriteLine($"{ThrID}. Selected LastFileIndex " + LastFileIndex.ToString());
+            var thread = fileAsyncManager.Advance();
+            string ThrID = fileAsyncManager.CurrThread.ToString();
 
-            Stopwatch stopwatch = new Stopwatch();
-            stopwatch.Start();
-
-            long last = 0;
-
-
-            for (int j = 0; j < 1000; j++)
+            if (thread.task != null)
             {
-
-                string FileSuffix = (++LastFileIndex).ToString();
-                string url = await octo1.Upload(FileSuffix, filecontent);
+                string url = await thread.task;
 
                 lock (uploads)
                 {
                     uploads.Enqueue(url);
                 }
 
-                long elps = stopwatch.ElapsedMilliseconds;
-                long d = elps - last;
-                last = elps;
+                long now = stopwatchUpload.ElapsedMilliseconds;
+                long d = now - thread.LastTime;
+                thread.LastTime = now;
 
                 Console.WriteLine($"{ThrID}. Uploaded {url} in {d}");
-
             }
+            else
+            {
+                thread.LastTime = stopwatchUpload.ElapsedMilliseconds;
+            }
+
+
+
+
+            string FileSuffix = (++thread.LastFileIndex).ToString();
+            thread.task = thread.FileClient.Upload(FileSuffix, filecontent);
+
 
         }
 
-        private static async void GithubBenchmarkDownload()
+        private static async Task GithubBenchmarkDownload()
         {
 
-
-            Stopwatch stopwatch = new Stopwatch();
-            stopwatch.Start();
-
-            long last;
+            string url;
 
 
-            for (int j = 0; j < 1000; j++)
+            if (uploads.Count == 0)
             {
+                return;
+            }
 
-                string url;
+            lock (uploads)
+            {
+                url = uploads.Dequeue();
+            }
 
-                lock (B)
-                {
 
-                    while (uploads.Count == 0)
-                    {
-                        Thread.Sleep(100);
-                    }
+            var thread = DownloadAsyncManager.Advance();
+            string ThrID = DownloadAsyncManager.CurrThread.ToString();
 
-                    lock (uploads)
-                    {
-                        url = uploads.Dequeue();
-                    }
-                }
-
-                last = stopwatch.ElapsedMilliseconds;
-
+            if (thread.task != null)
+            {
                 int DownloadedLength;
                 try
                 {
-                    DownloadedLength = (await GitFileClient.DownloadFromURL(url)).Length;
+                    DownloadedLength = (await thread.task).Length;
+
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"Error {ex} : {ex.Message} \n {ex.StackTrace}");
+                    Console.WriteLine($"{ThrID}. Error {ex} : {ex.Message} \n {ex.StackTrace}");
                     DownloadedLength = -1;
                 }
 
+                long now = stopwatchUpload.ElapsedMilliseconds;
+                long d = now - thread.LastTime;
+                thread.LastTime = now;
 
-                long elps = stopwatch.ElapsedMilliseconds;
-                long d = elps - last;
-                Console.WriteLine($" Got {url}   {DownloadedLength / 1024} kB in { d }");
 
-
+                Console.WriteLine($"{ThrID}. Got {url}   {DownloadedLength / 1024} kB in { d }");
             }
-
-        }
-
-
-        public static void GoBenchmark()
-        {
-            GoFileClient goFileClient = new GoFileClient();
-            Console.WriteLine($"Server is {goFileClient.SelectBestServer()}");
-
-
-            Stopwatch stopwatch = new Stopwatch();
-            stopwatch.Start();
-
-            long last = 0;
-
-
-            for (int j = 0; j < 10; j++)
+            else
             {
-
-                var upres = goFileClient.UploadAndGetURL(B, "file1.txt");
-
-                long elps = stopwatch.ElapsedMilliseconds;
-                long d = elps - last;
-                last = elps;
-
-                Console.WriteLine($"Uploaded to {upres} in {d}");
-
-
-                string downres = GoFileClient.Download(upres);
-
-                elps = stopwatch.ElapsedMilliseconds;
-                d = elps - last;
-                last = elps;
-
-                Console.WriteLine($"Got {downres.Length} bytes in { d }");
-
+                thread.LastTime = stopwatchUpload.ElapsedMilliseconds;
             }
+
+
+            thread.task = thread.FileClient.DownloadFromURL(url);
+
         }
+
     }
 }
