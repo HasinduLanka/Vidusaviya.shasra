@@ -1,5 +1,6 @@
 ﻿@inject IJSRuntime JsRuntime
 @page "/streamer"
+@using System.IO;
 
 <h1>@stat</h1>
 
@@ -49,25 +50,41 @@
     public System.Timers.Timer Timer;
     public System.Diagnostics.Stopwatch Stopwatch = new System.Diagnostics.Stopwatch();
 
+    static FileAsyncManager<string> fileAsyncManager;
+
+
+
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         await base.OnAfterRenderAsync(firstRender);
 
-        stat = await JsRuntime.InvokeAsync<string>("SayHi", "C Sharp");
+
+        if (firstRender)
+        {
+            Console.WriteLine("I'm hit");
+
+            Stopwatch.Start();
+
+            stat = await JsRuntime.InvokeAsync<string>("SayHi", "C Sharp");
+
+            await StartMeeting(Vidusaviya.shasra.Testing.RepoInfo.TestMeeting);
 
 
-        stat = await JsRuntime.InvokeAsync<string>("StartPreview", Array.Empty<string>());
+            stat = await JsRuntime.InvokeAsync<string>("StartPreview", Array.Empty<string>());
+        }
 
     }
 
     public async void Capture()
     {
 
-
         await JsRuntime.InvokeVoidAsync("Snap", "video", "capturedImage");
         var imageBytes = await JsRuntime.InvokeAsync<string>("GetImageData", "capturedImage", "image/bmp");
         // var data = Convert.FromBase64String(imageBytes); // get the image as byte array
+
     }
+
+
 
     public async void ToggleRecording()
     {
@@ -82,7 +99,6 @@
             Timer = new System.Timers.Timer(LoopIntervel);
             Timer.Elapsed += StreamLoop;
 
-            Stopwatch.Start();
             Timer.Start();
 
             // await this.InvokeAsync(StateHasChanged);
@@ -94,8 +110,6 @@
 
             RunLoop = false;
             Timer.Stop();
-            Stopwatch.Stop();
-
 
             await JsRuntime.InvokeVoidAsync("StopRec");
 
@@ -106,22 +120,127 @@
 
     public long LoopIntervel = 500;
     bool RunLoop = false;
+    bool StreamLooping = false;
+
+    Queue<string> uploads = new Queue<string>();
 
     public async void StreamLoop(object sender, System.Timers.ElapsedEventArgs e)
     {
         //Loop:
+        if (StreamLooping) return;
+        StreamLooping = true;
 
+
+
+
+
+        var thread = fileAsyncManager.Advance();
+
+        if (thread.task != null)
+        {
+            string url = await thread.task;
+
+            string hap;
+
+            if (url != "NOTFOUND")
+            {
+                uploads.Enqueue(url);
+                hap = $"Uploaded {url}";
+            }
+            else
+            {
+                hap = "Not found";
+            }
+
+            long now = Stopwatch.ElapsedMilliseconds;
+            long d = now - thread.LastTime;
+            thread.LastTime = now;
+
+            Console.WriteLine($" {hap} in {d}");
+
+        }
+        else
+        {
+            thread.LastTime = Stopwatch.ElapsedMilliseconds;
+        }
+
+        Func<Task<string>> x = (async () =>
         {
             string bloburl = await JsRuntime.InvokeAsync<string>("GetWCStream", null);
             if (bloburl != "")
             {
-                msg = bloburl;
-                // await this.InvokeAsync(StateHasChanged);
+                System.IO.Stream blb = await thread.FileClient.StreamFromURL(bloburl);
+                byte[] B = ReadFully(blb);
+                string I64 = Convert.ToBase64String(B);
+
+            //await JsRuntime.InvokeVoidAsync("AppendVideo", B);
+
+            msg = bloburl;
+
+                string FileSuffix = (++thread.LastFileIndex).ToString();
+                return await thread.FileClient.Upload(FileSuffix, I64);
+
+
             }
+            msg = bloburl;
+            return $"NOTFOUND";
         }
 
-        //if (RunLoop)
-        //    goto Loop;
+        );
+
+
+        thread.task = x.Invoke();
+
+        StreamLooping = false;
+
+
+    }
+
+    private static byte[] ReadFully(Stream input)
+    {
+        using (MemoryStream ms = new MemoryStream())
+        {
+            input.CopyTo(ms);
+            return ms.ToArray();
+        }
+    }
+
+
+    public async Task StartMeeting(MeetingStreamerSettings settings)
+    {
+
+        switch (settings.CDNType)
+        {
+            case CDNType.FTP:
+                break;
+
+            case CDNType.Github:
+
+                int count = settings.GithubInfos.Count;
+                fileAsyncManager = new FileAsyncManager<string>(count);
+
+                int gi = 0;
+                foreach (var gr in settings.GithubInfos)
+                {
+                    var thr = new FileAsyncThread<string>(new GitFileClient(gr.UName, gr.ps, gr.Repo, gr.Path));
+                    fileAsyncManager.Threads[gi] = thr;
+                    //thr.FileClient.DeleteAll().Wait();
+                    thr.LastFileIndex = await thr.FileClient.GetLastFileIndex();
+                    Console.WriteLine($"{gi}. Selected LastFileIndex {thr.LastFileIndex}");
+
+                    gi++;
+                }
+
+                break;
+
+            case CDNType.Firestore:
+                break;
+
+            default:
+                break;
+        }
+
+
 
     }
 

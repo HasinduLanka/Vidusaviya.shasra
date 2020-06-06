@@ -138,7 +138,7 @@ window.StopRec = async () => {
 
 
 
-window.GetWCStream = async () => {
+window.GetWCStream = async () => { 
 
     if (ChunkCount > 0) {
         ChunkCount = 0;
@@ -147,29 +147,30 @@ window.GetWCStream = async () => {
 
         var blb = window.URL.createObjectURL(superBuffer);
 
-
-        if (IsPlaying == false) {
-
-            video2.src = blb;
-            video2.play();
-
-            console.log('Playlist started');
-            IsPlaying = true;
-        }
-        else {
-            Playlist.push(blb);
-            console.log('Added to playlist');
-        }
-
-
         recordedChunks = [];
-
-
+        //window.AppendVideo(blb);
+   
         return blb;
     }
     return "";
 
+}
 
+window.AppendVideo = async (blb) => {
+
+    if (IsPlaying == false) {
+
+        video2.src = blb;
+        video2.play();
+
+        console.log('Playlist started');
+        IsPlaying = true;
+    }
+    else {
+        Playlist.push(blb);
+        console.log('Added to playlist');
+        
+    }
 
 }
 

@@ -12,10 +12,7 @@ namespace Vidusaviya.shasra.Testing
 {
     class Program
     {
-        private readonly static string GitUsername = RepoInfo.GitUsername;
-        private readonly static string GitPassword = RepoInfo.vidup;
-        private readonly static string GitRepo = RepoInfo.GitRepo;
-        private readonly static string GitPath = RepoInfo.GitPath;
+
 
         static string filecontent;
 
@@ -32,11 +29,26 @@ namespace Vidusaviya.shasra.Testing
 
 
 
-            fileAsyncManager = new FileAsyncManager<string>(2);
-
-            for (int i = 0; i < 2; i++)
+            int Thrds = 1;
+            switch (RepoInfo.TestMeeting.CDNType)
             {
-                var thr = new FileAsyncThread<string>(new GitFileClient(GitUsername, GitPassword, GitRepo + (i + 1).ToString(), GitPath));
+                case CDNType.FTP:
+                    break;
+                case CDNType.Github:
+                    Thrds = RepoInfo.TestMeeting.GithubInfos.Count;
+                    break;
+                case CDNType.Firestore:
+                    break;
+                default:
+                    break;
+            }
+
+
+            fileAsyncManager = new FileAsyncManager<string>(Thrds);
+
+            for (int i = 0; i < Thrds; i++)
+            {
+                var thr = new FileAsyncThread<string>(new GitFileClient(RepoInfo.TestMeeting.GithubInfos[i]));
                 fileAsyncManager.Threads[i] = thr;
                 //thr.FileClient.DeleteAll().Wait();
                 thr.LastFileIndex = thr.FileClient.GetLastFileIndex().Result;
@@ -52,11 +64,12 @@ namespace Vidusaviya.shasra.Testing
                 filecontent += $"Hello github {i} times!\n";
             }
 
+            var peersettings = RepoInfo.TestMeeting.PeerSettings();
 
-            DownloadAsyncManager = new FileAsyncManager<string>(2);
-            for (int i = 0; i < 2; i++)
+            DownloadAsyncManager = new FileAsyncManager<string>(Thrds);
+            for (int i = 0; i < Thrds; i++)
             {
-                DownloadAsyncManager.Threads[i] = new FileAsyncThread<string>(new GitDownloadCient(GitUsername, GitRepo + (i + 1).ToString(), GitPath));
+                DownloadAsyncManager.Threads[i] = new FileAsyncThread<string>(new GitDownloadCient(peersettings[i]));
             }
 
 

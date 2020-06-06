@@ -339,3 +339,6 @@ ASALocalRun/
 # BeatPulse healthcheck temp database
 healthchecksdb
 /Vidusaviya.shasra.Testing/RepoInfo.cs
+/Vidusaviya.shasra/RepoInfo.cs
+/Shasra.STD/RepoInfo.cs
+/Vidusaviya.shasra/Data/RepoInfo.cs
