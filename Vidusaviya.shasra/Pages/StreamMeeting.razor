@@ -5,7 +5,7 @@
 <h1>@stat</h1>
 
 <input type="button" class="btn-sm btn-outline-primary" @onclick="Capture" value="Capture" />
-<input type="button" class="btn-sm btn-@(IsRecording?"danger":"success")" @onclick="ToggleRecording" value="@((IsRecording?"Stop recording":"Start recording"))" />
+<input type="button" class="btn-sm btn-@(IsRecording ? "danger" : "success")" @onclick="ToggleRecording" value="@((IsRecording ? "Stop recording" : "Start recording"))" />
 <input type="button" id="recButton" class="btn-sm btn-primary" value="Share Screen" />
 <div class="row">
     <div class="col-md-4">
@@ -19,7 +19,7 @@
             <h6>Compressed feed</h6>
             <canvas id="midcanvas" width="480" height="360"></canvas>
 
-            <h6>(@RunLoop?"⬤":"⏹")</h6>
+            <h6>@(RunLoop?"⬤":"⏹")</h6>
         </center>
     </div>
     <div class="col-md-4">
@@ -48,7 +48,10 @@
 </div>
 
 
-@code  {
+@code
+{
+
+
     // style="display: none"
 
     public string stat { get; set; }
@@ -80,12 +83,13 @@
 
             await StartMeeting(Vidusaviya.shasra.Testing.RepoInfo.TestMeeting);
 
-        stat = await JsRuntime.InvokeAsync<string>("StartPreview", Array.Empty<string>());
-        await JsRuntime.InvokeAsync<string>("InitScreenRec", "screenVideo", "recButton");
+            stat = await JsRuntime.InvokeAsync<string>("StartPreview", Array.Empty<string>());
+            await JsRuntime.InvokeAsync<string>("InitScreenRec", "screenVideo", "recButton");
 
+        }
     }
 
-    public async void Capture()
+    async void Capture()
     {
 
         await JsRuntime.InvokeVoidAsync("Snap", "video", "capturedImage");
@@ -96,7 +100,7 @@
 
 
 
-    public async void ToggleRecording()
+    async void ToggleRecording()
     {
         IsRecording = !IsRecording;
 
@@ -127,13 +131,13 @@
         }
     }
 
-    public long LoopIntervel = 500;
+    long LoopIntervel = 100;
     bool RunLoop = false;
     bool StreamLooping = false;
 
     Queue<string> uploads = new Queue<string>();
 
-    public async void StreamLoop(object sender, System.Timers.ElapsedEventArgs e)
+    async void StreamLoop(object sender, System.Timers.ElapsedEventArgs e)
     {
         //Loop:
         if (StreamLooping) return;
@@ -158,14 +162,15 @@
             }
             else
             {
-                hap = "Not found";
+                hap = "";
             }
 
             long now = Stopwatch.ElapsedMilliseconds;
             long d = now - thread.LastTime;
             thread.LastTime = now;
 
-            Console.WriteLine($" {hap} in {d}");
+            if (hap != "")
+                Console.WriteLine($" {hap} in {d}");
 
         }
         else
@@ -215,7 +220,7 @@
     }
 
 
-    public async Task StartMeeting(MeetingStreamerSettings settings)
+    async Task StartMeeting(MeetingStreamerSettings settings)
     {
 
         switch (settings.CDNType)

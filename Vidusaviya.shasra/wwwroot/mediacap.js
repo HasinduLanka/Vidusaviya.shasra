@@ -97,7 +97,7 @@ function handleDataAvailable(event) {
 
         if (IsRecording) {
             mediaRecorder.stop();
-            mediaRecorder.start(4000);
+            mediaRecorder.start(2000);
         }
         console.log("Recorder " + mediaRecorder.state + "  #" + ChunkCount + " data read " + (event.data.size / 1024) + " KB");
     }
@@ -121,7 +121,7 @@ window.StartRec = async () => {
     mediaRecorder = new MediaRecorder(camstream, options);
     mediaRecorder.ondataavailable = handleDataAvailable;
 
-    mediaRecorder.start(4000);
+    mediaRecorder.start(2000);
     console.log(mediaRecorder.state);
     console.log("recorder started");
 }
@@ -148,7 +148,7 @@ window.GetWCStream = async () => {
         var blb = window.URL.createObjectURL(superBuffer);
 
         recordedChunks = [];
-        //window.AppendVideo(blb);
+        window.AppendVideo(blb);
    
         return blb;
     }
