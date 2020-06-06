@@ -12,10 +12,10 @@ namespace Vidusaviya.shasra.Testing
 {
     class Program
     {
-        private readonly static string GitUsername = RepoInfo.GitUsername;
-        private readonly static string GitPassword = RepoInfo.vidup;
-        private readonly static string GitRepo = RepoInfo.GitRepo;
-        private readonly static string GitPath = RepoInfo.GitPath;
+        private readonly static string GitUsername = RepoInfoTemplate.GitUsername;
+        private readonly static string GitPassword = RepoInfoTemplate.vidup;
+        private readonly static string GitRepo = RepoInfoTemplate.GitRepo;
+        private readonly static string GitPath = RepoInfoTemplate.GitPath;
 
         static string filecontent;
 

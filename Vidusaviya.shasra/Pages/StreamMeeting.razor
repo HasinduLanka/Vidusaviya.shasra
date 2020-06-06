@@ -5,6 +5,7 @@
 
 <input type="button" class="btn-sm btn-outline-primary" @onclick="Capture" value="Capture" />
 <input type="button" class="btn-sm btn-@(IsRecording?"danger":"success")" @onclick="ToggleRecording" value="@((IsRecording?"Stop recording":"Start recording"))" />
+<input type="button" id="recButton" class="btn-sm btn-primary" value="Share Screen" />
 <div class="row">
     <div class="col-md-4">
         <center>
@@ -28,12 +29,19 @@
         </center>
     </div>
 </div>
+
 <hr />
 <div class="row">
-    <div class="col-md-12">
+    <div class="col-md-6">
         <center>
             <h5>Peer simulation</h5>
             <video id="video2" width="1280" height="720" autoplay></video>
+        </center>
+    </div>
+    <div class="col-md-6">
+        <center>
+            <h5>Screen Share</h5>
+            <video id="screenVideo" width="1280" height="720" autoplay></video>
         </center>
     </div>
 </div>
@@ -45,6 +53,9 @@
     public string stat { get; set; }
     public string msg { get; set; }
     public bool IsRecording = false;
+    public bool IsRecordingScreen = false;
+
+
 
     public System.Timers.Timer Timer;
     public System.Diagnostics.Stopwatch Stopwatch = new System.Diagnostics.Stopwatch();
@@ -57,6 +68,7 @@
 
 
         stat = await JsRuntime.InvokeAsync<string>("StartPreview", Array.Empty<string>());
+        await JsRuntime.InvokeAsync<string>("InitScreenRec", "screenVideo", "recButton");
 
     }
 
@@ -102,7 +114,6 @@
             // await this.InvokeAsync(StateHasChanged);
         }
     }
-
 
     public long LoopIntervel = 500;
     bool RunLoop = false;
