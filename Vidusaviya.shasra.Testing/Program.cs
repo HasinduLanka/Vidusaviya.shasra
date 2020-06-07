@@ -69,7 +69,7 @@ namespace Vidusaviya.shasra.Testing
             DownloadAsyncManager = new FileAsyncManager<string>(Thrds);
             for (int i = 0; i < Thrds; i++)
             {
-                DownloadAsyncManager.Threads[i] = new FileAsyncThread<string>(new GitDownloadCient(peersettings[i]));
+                DownloadAsyncManager.Threads[i] = new FileAsyncThread<string>(new GitDownloadCient(peersettings.URLPrefixes[i]));
             }
 
 

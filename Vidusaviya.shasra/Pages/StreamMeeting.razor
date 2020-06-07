@@ -65,6 +65,10 @@
     public System.Diagnostics.Stopwatch Stopwatch = new System.Diagnostics.Stopwatch();
 
     static FileAsyncManager<string> fileAsyncManager;
+    static FileAsyncManager<string> downloadAsyncManager;
+
+    MeetingStreamerSettings settings;
+    static MeetingPeerSettings PeerSettings;
 
 
 
@@ -81,10 +85,13 @@
 
             stat = await JsRuntime.InvokeAsync<string>("SayHi", "C Sharp");
 
-            await StartMeeting(Vidusaviya.shasra.Testing.RepoInfo.TestMeeting);
+            settings = Vidusaviya.shasra.Testing.RepoInfo.TestMeeting;
+            await StartMeeting();
 
             stat = await JsRuntime.InvokeAsync<string>("StartPreview", Array.Empty<string>());
             await JsRuntime.InvokeAsync<string>("InitScreenRec", "screenVideo", "recButton");
+
+            stat = await downloadAsyncManager.Thread.FileClient.Upload("", "");
 
         }
     }
@@ -220,7 +227,7 @@
     }
 
 
-    async Task StartMeeting(MeetingStreamerSettings settings)
+    async Task StartMeeting()
     {
 
         switch (settings.CDNType)
@@ -230,20 +237,42 @@
 
             case CDNType.Github:
 
+
+                PeerSettings = settings.PeerSettings();
+                int pscount = PeerSettings.URLPrefixes.Count();
+                downloadAsyncManager = new FileAsyncManager<string>(pscount);
+
+                for (int i = 0; i < pscount; i++)
+                {
+                    var thr = new FileAsyncThread<string>(new GitDownloadCient(PeerSettings.URLPrefixes[i]));
+                    downloadAsyncManager.Threads[i] = thr;
+
+                }
+
+
+
                 int count = settings.GithubInfos.Count;
                 fileAsyncManager = new FileAsyncManager<string>(count);
+
 
                 int gi = 0;
                 foreach (var gr in settings.GithubInfos)
                 {
-                    var thr = new FileAsyncThread<string>(new GitFileClient(gr.UName, gr.ps, gr.Repo, gr.Path));
-                    fileAsyncManager.Threads[gi] = thr;
+                    var thru = new FileAsyncThread<string>(new GitFileClient(gr.UName, gr.ps, gr.Repo, gr.Path));
+                    fileAsyncManager.Threads[gi] = thru;
                     //thr.FileClient.DeleteAll().Wait();
-                    thr.LastFileIndex = await thr.FileClient.GetLastFileIndex();
-                    Console.WriteLine($"{gi}. Selected LastFileIndex {thr.LastFileIndex}");
+
+                    thru.LastFileIndex = await thru.FileClient.GetLastFileIndex();
+                    downloadAsyncManager.Threads[gi].LastFileIndex = thru.LastFileIndex;
+
+                    Console.WriteLine($"{gi}. Selected LastFileIndex {thru.LastFileIndex}");
+
 
                     gi++;
                 }
+
+
+
 
                 break;
 

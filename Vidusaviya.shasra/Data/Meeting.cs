@@ -29,33 +29,40 @@ namespace Vidusaviya.shasra
         public string Key;
 
         //Auto Gen
-        public List<MeetingPeerSettings> PeerSettings()
+        public MeetingPeerSettings PeerSettings()
         {
-            var lst = new List<MeetingPeerSettings>();
+            MeetingPeerSettings meetingPeerSettings = new MeetingPeerSettings()
+            {
+                ID = ID,
+                CDNType = CDNType,
+                EncType = EncType,
+                Key = Key
+            };
+
             switch (CDNType)
             {
                 case CDNType.FTP:
                     break;
+
                 case CDNType.Github:
+
+                    meetingPeerSettings.URLPrefixes = new List<string>(GithubInfos.Count);
+
                     foreach (var item in GithubInfos)
                     {
-                        lst.Add(new MeetingPeerSettings()
-                        {
-                            ID = ID,
-                            CDNType = CDNType,
-                            EncType = EncType,
-                            Key = Key,
-                            URLPrefix = item.PeerURLPrefix
-                        });
+                        meetingPeerSettings.URLPrefixes.Add(item.PeerURLPrefix);
                     }
+
                     break;
+
                 case CDNType.Firestore:
                     break;
+
                 default:
                     break;
             }
 
-            return lst;
+            return meetingPeerSettings;
 
         }
 
@@ -66,10 +73,11 @@ namespace Vidusaviya.shasra
         public int ID; //ID
 
         public CDNType CDNType;
-        public string URLPrefix;
 
         public EncryptionType EncType = EncryptionType.None;
         public string Key; //BASE64 decryption key
+
+        public List<string> URLPrefixes;
 
     }
 

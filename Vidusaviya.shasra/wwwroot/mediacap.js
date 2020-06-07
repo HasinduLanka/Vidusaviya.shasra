@@ -138,7 +138,7 @@ window.StopRec = async () => {
 
 
 
-window.GetWCStream = async () => { 
+window.GetWCStream = async () => {
 
     if (ChunkCount > 0) {
         ChunkCount = 0;
@@ -149,7 +149,7 @@ window.GetWCStream = async () => {
 
         recordedChunks = [];
         window.AppendVideo(blb);
-   
+
         return blb;
     }
     return "";
@@ -169,7 +169,7 @@ window.AppendVideo = async (blb) => {
     else {
         Playlist.push(blb);
         console.log('Added to playlist');
-        
+
     }
 
 }

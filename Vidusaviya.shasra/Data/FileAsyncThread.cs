@@ -42,11 +42,16 @@ namespace Vidusaviya.shasra
         public int CurrThread { get; private set; } = 0;
         public FileAsyncThread<T> Thread => Threads[CurrThread];
 
+
+        /// <summary>
+        /// Return Current Thread and Advance Thread Index (Wrapped)
+        /// </summary>
         public FileAsyncThread<T> Advance()
         {
+            int ret = CurrThread;
             CurrThread++;
             if (CurrThread == Size) CurrThread = 0;
-            return Threads[CurrThread];
+            return Threads[ret];
         }
     }
 

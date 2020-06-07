@@ -120,6 +120,7 @@ namespace Vidusaviya.shasra
     {
         public string URLPrefix;
         public HttpClient HttpClient;
+        public HttpListener HttpListener;
 
         public bool IsReadOnly => true;
 
@@ -133,17 +134,13 @@ namespace Vidusaviya.shasra
         {
             URLPrefix = $"https://raw.githubusercontent.com/{Username}/{Repo}/{branch}/{gitPath}";
             HttpClient = new HttpClient();
+            HttpListener = new HttpListener();
+
         }
 
-        public GitDownloadCient(MeetingPeerSettings settings)
+        public async Task<string> Upload(string FileSuffix, string Data)
         {
-            URLPrefix = settings.URLPrefix;
-            HttpClient = new HttpClient();
-        }
-
-        public Task<string> Upload(string FileSuffix, string Data)
-        {
-            return null;
+            return HttpListener.IsSupported ? "HttpListener Supported" : "HttpListener Not Supported";
         }
 
         public Task<string> Update(string FileSuffix, string Data)
