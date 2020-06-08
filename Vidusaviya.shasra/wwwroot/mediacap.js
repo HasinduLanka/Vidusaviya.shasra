@@ -1,5 +1,5 @@
 ﻿//DrawImage
-window.Snap = async (src, dest) => {
+window.SnapCam = async (src, dest) => {
     var canvas = document.getElementById(dest);
     var context = canvas.getContext('2d');
     var video = document.getElementById(src);
@@ -8,7 +8,7 @@ window.Snap = async (src, dest) => {
 }
 
 // Get image as base64 string
-window.GetImageData = async (el, format) => {
+window.GetImageDataCam = async (el, format) => {
     let canvas = document.getElementById(el);
     let dataUrl = canvas.toDataURL(format);
     return dataUrl.split(',')[1];
@@ -16,50 +16,51 @@ window.GetImageData = async (el, format) => {
 
 
 
-var mediaRecorder;
+var mediaRecorderCam;
 var camstream;
-var midcanvas;
+var midcanvasCam;
 
 
 
-var video2;
-var Playlist = [];
-var IsPlaying = false;
+var videoCamPrev;
+var PlaylistCam = [];
+var IsPlayingCam = false;
 
 
-window.StartPreview = async () => {
+window.StartPreviewCam = async () => {
 
-    console.log("Starting preview");
+    console.log("Starting Cam preview");
 
-    video2 = document.getElementById('video2');
+    videoCamPrev = document.getElementById('camPerview');
 
-    video2.addEventListener('ended', (event) => {
+    videoCamPrev.addEventListener('ended', (event) => {
 
-        if (Playlist.length == 0) {
-            IsPlaying = false;
-            console.log('Video end');
+        if (PlaylistCam.length == 0) {
+            IsPlayingCam = false;
+            console.log('Cam Video end');
         }
         else {
-            video2.src = Playlist.shift();
-            video2.play();
-            console.log('Video Replaying');
+            videoCamPrev.src = Playlist.shift();
+            videoCamPrev.play();
+            console.log('Cam Video Replaying');
         }
     });
 
 
 
-    var video = document.getElementById('video');
+    var video = document.getElementById('liveCam');
 
     // Get access to the camera!
     if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
         // Not adding `{ audio: true }` since we only want video now
-        navigator.mediaDevices.getUserMedia({ video: true, audio: true }).then(function (stream) {
+        navigator.mediaDevices.getUserMedia({ video: true, audio: true }).then(
+            function (stream) {
             //video.src = window.URL.createObjectURL(stream);
 
             video.srcObject = stream;
 
-            midcanvas = document.getElementById('midcanvas');
-            var ctx = midcanvas.getContext('2d');
+            midcanvasCam = document.getElementById('CompCavasCam');
+            var ctx = midcanvasCam.getContext('2d');
 
             video.addEventListener('play', function () {
                 var $this = this; //cache
@@ -74,7 +75,7 @@ window.StartPreview = async () => {
 
             video.play();
             //camstream = stream;
-            camstream = midcanvas.captureStream(8);
+            camstream = midcanvasCam.captureStream(8);
             return "Say cheese";
         });
     }
@@ -85,30 +86,30 @@ window.StartPreview = async () => {
 
 
 
-var IsRecording = false;
-var recordedChunks = [];
-var ChunkCount = 0;
+var IsRecordingCam = false;
+var recordedChunksCam = [];
+var ChunkCountCam = 0;
 
 
-function handleDataAvailable(event) {
+function handleDataAvailableCam(event) {
     if (event.data.size > 0) {
-        recordedChunks.push(event.data);
-        ChunkCount += 1;
+        recordedChunksCam.push(event.data);
+        ChunkCountCam += 1;
 
-        if (IsRecording) {
-            mediaRecorder.stop();
-            mediaRecorder.start(2000);
+        if (IsRecordingCam) {
+            mediaRecorderCam.stop();
+            mediaRecorderCam.start(2000);
         }
-        console.log("Recorder " + mediaRecorder.state + "  #" + ChunkCount + " data read " + (event.data.size / 1024) + " KB");
+        console.log("Cam Recorder " + mediaRecorderCam.state + "  #" + ChunkCountCam + " data read " + (event.data.size / 1024) + " KB");
     }
 }
 
 
 
-window.StartRec = async () => {
+window.StartRecCam = async () => {
 
-    recordedChunks = [];
-    ChunkCount = 0;
+    recordedChunksCam = [];
+    ChunkCountCam = 0;
 
     var options = {
         audioBitsPerSecond: 128000,
@@ -118,37 +119,37 @@ window.StartRec = async () => {
 
     IsRecording = true;
 
-    mediaRecorder = new MediaRecorder(camstream, options);
-    mediaRecorder.ondataavailable = handleDataAvailable;
+    mediaRecorderCam = new MediaRecorder(camstream, options);
+    mediaRecorderCam.ondataavailable = handleDataAvailableCam;
 
-    mediaRecorder.start(2000);
-    console.log(mediaRecorder.state);
+    mediaRecorderCam.start(2000);
+    console.log(mediaRecorderCam.state);
     console.log("recorder started");
 }
 
 
 
 
-window.StopRec = async () => {
-    IsRecording = false;
-    console.log(mediaRecorder.state);
+window.StopRecCam = async () => {
+    IsRecordingCam = false;
+    console.log(mediaRecorderCam.state);
     console.log("recorder stopping");
-    mediaRecorder.stop();
+    mediaRecorderCam.stop();
 }
 
 
 
-window.GetWCStream = async () => {
+window.GetWCStreamCam = async () => {
 
-    if (ChunkCount > 0) {
-        ChunkCount = 0;
+    if (ChunkCountCam > 0) {
+        ChunkCountCam = 0;
 
-        var superBuffer = new Blob(recordedChunks, { type: "video/webm" });
+        var superBuffer = new Blob(recordedChunksCam, { type: "video/webm" });
 
         var blb = window.URL.createObjectURL(superBuffer);
 
-        recordedChunks = [];
-        window.AppendVideo(blb);
+        recordedChunksCam = [];
+        window.AppendVideoCam(blb);
 
         return blb;
     }
@@ -156,18 +157,18 @@ window.GetWCStream = async () => {
 
 }
 
-window.AppendVideo = async (blb) => {
+window.AppendVideoCam = async (blb) => {
 
-    if (IsPlaying == false) {
+    if (IsPlayingCam == false) {
 
-        video2.src = blb;
-        video2.play();
+        videoCamPrev.src = blb;
+        videoCamPrev.play();
 
         console.log('Playlist started');
-        IsPlaying = true;
+        IsPlayingCam = true;
     }
     else {
-        Playlist.push(blb);
+        PlaylistCam.push(blb);
         console.log('Added to playlist');
 
     }
