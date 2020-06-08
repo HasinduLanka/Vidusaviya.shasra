@@ -1,74 +1,86 @@
 ﻿@inject IJSRuntime JsRuntime
 @page "/streamer"
 @using System.IO;
-
+@*console.log(document.getElementById('id').getBoundingClientRect())*@
 <h1>@stat</h1>
 
-<input type="button" class="btn-sm btn-outline-primary" @onclick="CaptureCam" value="Capture Cam" />
-<input type="button" class="btn-sm btn-@(IsRecordingCam ? "danger" : "success")" @onclick="ToggleRecordingCam" value="@((IsRecordingCam ? "Stop recording" : "Start recording"))" />
-<hr />
-<input type="button" class="btn-sm btn-outline-primary" @onclick="CaptureScreen" value="Capture Screen" />
-<input type="button" class="btn-sm btn-@(IsRecordingScreen ? "danger" : "success")" @onclick="ToggleRecordingScreen" value="@((IsRecordingScreen ? "Stop Screen Sharing" : "Start Screen Sharing"))" />
-<div class="row">
-    <div class="col-md-4">
-        <center>
-            <h6>Live Webcam</h6>
-            <video id="liveCam" width="480" height="360" autoplay></video>
-        </center>
+<div class="MainContainer">
+    <div class="SideBarContainer">
+        <div class="sidebar">
+
+        </div>
     </div>
-    <div class="col-md-4">
-        <center>
-            <h6>Compressed Cam feed</h6>
-            <canvas id="CompCavasCam" width="480" height="360"></canvas>
-            <h6>@(RunLoopCam ? "⬤":"⏹")</h6>
-        </center>
-    </div>
-    <div class="col-md-4">
-        <center>
-            <h6>Captured Cam Video</h6>
-            <canvas id="capturedCam" width="320" height="240"></canvas>
-            <h4>@msgCam</h4>
-        </center>
+    <div class="DataContainer">
+        <div class="container-fluid">
+            <input type="button" class="btn-sm btn-outline-primary" @onclick="CaptureCam" value="Capture Cam" />
+            <input type="button" class="btn-sm btn-@(IsRecordingCam ? "danger" : "success")" @onclick="ToggleRecordingCam" value="@((IsRecordingCam ? "Stop recording" : "Start recording"))" />
+            <hr />
+            <input type="button" class="btn-sm btn-outline-primary" @onclick="CaptureScreen" value="Capture Screen" />
+            <input type="button" class="btn-sm btn-@(IsRecordingScreen ? "danger" : "success")" @onclick="ToggleRecordingScreen" value="@((IsRecordingScreen ? "Stop Screen Sharing" : "Start Screen Sharing"))" />
+            <div class="row">
+                <div class="col-md-4">
+                    <center class="Bordered-Box">
+                        <h6>Live Webcam</h6>
+                        <video id="liveCam" width="480" height="360" autoplay></video>
+                    </center>
+                </div>
+                <div class="col-md-4">
+                    <center class="Bordered-Box">
+                        <h6>Compressed Cam feed</h6>
+                        <canvas id="CompCavasCam" width="480" height="360"></canvas>
+                        <h6>@(RunLoopCam ? "⬤":"⏹")</h6>
+                    </center>
+                </div>
+                <div class="col-md-4">
+                    <center class="Bordered-Box">
+                        <h6>Captured Cam Video</h6>
+                        <canvas id="capturedCam" width="320" height="240"></canvas>
+                        <h4>@msgCam</h4>
+                    </center>
+                </div>
+            </div>
+            <hr />
+            <div class="row">
+                <div class="col-md-4">
+                    <center class="Bordered-Box">
+                        <h6>Live Screen</h6>
+                        <video id="liveScreen" width="480" height="360" autoplay></video>
+                    </center>
+                </div>
+                <div class="col-md-4">
+                    <center class="Bordered-Box">
+                        <h6>Compressed Screen feed</h6>
+                        <canvas id="CompCavasScreen" width="480" height="360"></canvas>
+                        <h6>@(RunLoopScreen ? "⬤":"⏹")</h6>
+                    </center>
+                </div>
+                <div class="col-md-4">
+                    <center class="Bordered-Box">
+                        <h6>Captured Screen Video</h6>
+                        <canvas id="capturedScreen" width="320" height="240"></canvas>
+                        <h4>@msgScreen</h4>
+                    </center>
+                </div>
+            </div>
+            <hr />
+            <div class="row">
+                <div class="col-md-6">
+                    <center class="Bordered-Box">
+                        <h5>Peer simulation Cam</h5>
+                        <video id="camPerview" width="1280" height="720" autoplay></video>
+                    </center>
+                </div>
+                <div class="col-md-6">
+                    <center class="Bordered-Box">
+                        <h5>Peer simulation Screen</h5>
+                        <video id="screenPreview" width="1280" height="720" autoplay></video>
+                    </center>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
-<hr />
-<div class="row">
-    <div class="col-md-4">
-        <center>
-            <h6>Live Screen</h6>
-            <video id="liveScreen" width="480" height="360" autoplay></video>
-        </center>
-    </div>
-    <div class="col-md-4">
-        <center>
-            <h6>Compressed Screen feed</h6>
-            <canvas id="CompCavasScreen" width="480" height="360"></canvas>
-            <h6>@(RunLoopScreen ? "⬤":"⏹")</h6>
-        </center>
-    </div>
-    <div class="col-md-4">
-        <center>
-            <h6>Captured Screen Video</h6>
-            <canvas id="capturedScreen" width="320" height="240"></canvas>
-            <h4>@msgScreen</h4>
-        </center>
-    </div>
-</div>
-<hr />
-<div class="row">
-    <div class="col-md-6">
-        <center>
-            <h5>Peer simulation Cam</h5>
-            <video id="camPerview" width="1280" height="720" autoplay></video>
-        </center>
-    </div>
-    <div class="col-md-6">
-        <center>
-            <h5>Peer simulation Screen</h5>
-            <video id="screenPreview" width="1280" height="720" autoplay></video>
-        </center>
-    </div>
-</div>
+
 
 
 @code
@@ -76,6 +88,8 @@
 
 
     // style="display: none"
+
+    public bool MeetingStarted = false;
 
     public string stat { get; set; }
     public string msgCam { get; set; }
@@ -113,7 +127,6 @@
             await StartMeeting();
 
             stat = await JsRuntime.InvokeAsync<string>("StartPreviewCam", Array.Empty<string>());
-            stat = await JsRuntime.InvokeAsync<string>("StartPreviewScreen", Array.Empty<string>());
             stat = await downloadAsyncManager.Thread.FileClient.Upload("", "");
 
         }
@@ -129,6 +142,7 @@
     async void CaptureScreen()
     {
 
+        await JsRuntime.InvokeAsync<string>("StartPreviewScreen", Array.Empty<string>());
         await JsRuntime.InvokeVoidAsync("SnapScreen", "liveScreen", "capturedScreen");
         var imageBytes = await JsRuntime.InvokeAsync<string>("GetImageDataScreen", "capturedScreen", "image/bmp");
         // var data = Convert.FromBase64String(imageBytes); // get the image as byte array
