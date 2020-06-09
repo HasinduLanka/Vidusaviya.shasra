@@ -43,7 +43,7 @@ body::-webkit-scrollbar-thumb {
 /* The Magic */
 #header {
     position: fixed;
-    width:100%;
+    width: 100%;
 }
 
 .links {
@@ -1160,3 +1160,29 @@ a.MenuCard:hover, .MenuCard-topimage:hover {
         text-overflow: ellipsis;
         color: #393f49
     }
+
+.btnIcon {
+    background-color: transparent;
+    border: none;
+    color: white;
+    padding: 12px 16px;
+    font-size: 24px;
+    cursor: pointer;
+    border-radius: 50%;
+}
+
+    .btnIcon:hover {
+        background-color: RoyalBlue;
+    }
+
+.hideDiv {
+min-height:50px;
+}
+
+.hiddenDiv {
+    display: none
+}
+
+.hideDiv:hover .hiddenDiv {
+    display: block
+}

@@ -1,0 +1,32 @@
+﻿@page "/Meet"
+
+<div>
+    <div class="navbar-fixed-top hideDiv" style="padding-top:20px;">
+        <div class="row hiddenDiv" style="padding-right:20px;">
+            <button class="btn btn-info pull-right"><i class="fa fa-cogs"></i></button>
+            <button class="btn btn-default pull-right"><i class="fa fa-ellipsis-h"></i></button>
+        </div>
+        <div class="row text-center" style="color:white;">Waiting...</div>
+    </div>
+    <canvas id="videoui" style="background-color:rgba(20, 19, 19, 0.99); width:100vw;height:100vh"></canvas>
+    @if (MeetingStarted)
+    {
+        <div class="navbar-fixed-bottom hideDiv" style="padding-bottom:15px;">
+            <center class="hiddenDiv">
+                <div class="row">
+                    <button class="btn btn-@(SharingSceren?"danger":"primary")"><i class="fa fa-desktop"></i></button>
+                    <button class="btn btn-@(SharingCamerea?"danger":"success")"><i class="fa fa-video-camera"></i></button>
+                    <button class="btn btn-@(Muted?"success":"warning")"><i class="fa fa-microphone"></i></button>
+                    <button class="btn btn-danger"><i class="fa fa-phone"></i></button>
+                </div>
+            </center>
+        </div>
+    }
+</div>
+
+@code {
+    public bool MeetingStarted = true;
+    public bool Muted = false;
+    public bool SharingCamerea = true;
+    public bool SharingSceren = false;
+}
