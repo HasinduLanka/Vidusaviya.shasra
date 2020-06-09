@@ -1,64 +1,48 @@
 ﻿@inject IJSRuntime JsRuntime
 @page "/streamer"
+@page "/"
 @using System.IO;
 @*console.log(document.getElementById('id').getBoundingClientRect())*@
+
+
 <h1>@stat</h1>
 
 <div class="MainContainer">
-    <div class="SideBarContainer">
-        <div class="sidebar">
 
-        </div>
-    </div>
     <div class="DataContainer">
         <div class="container-fluid">
-            <input type="button" class="btn-sm btn-outline-primary" @onclick="CaptureCam" value="Capture Cam" />
-            <input type="button" class="btn-sm btn-@(IsRecordingCam ? "danger" : "success")" @onclick="ToggleRecordingCam" value="@((IsRecordingCam ? "Stop recording" : "Start recording"))" />
-            <hr />
-            <input type="button" class="btn-sm btn-outline-primary" @onclick="CaptureScreen" value="Capture Screen" />
-            <input type="button" class="btn-sm btn-@(IsRecordingScreen ? "danger" : "success")" @onclick="ToggleRecordingScreen" value="@((IsRecordingScreen ? "Stop Screen Sharing" : "Start Screen Sharing"))" />
-            <div class="row">
-                <div class="col-md-4">
-                    <center class="Bordered-Box">
-                        <h6>Live Webcam</h6>
-                        <video id="liveCam" width="480" height="360" autoplay></video>
-                    </center>
-                </div>
-                <div class="col-md-4">
-                    <center class="Bordered-Box">
-                        <h6>Compressed Cam feed</h6>
-                        <canvas id="CompCavasCam" width="480" height="360"></canvas>
-                        <h6>@(RunLoopCam ? "⬤":"⏹")</h6>
-                    </center>
-                </div>
-                <div class="col-md-4">
-                    <center class="Bordered-Box">
-                        <h6>Captured Cam Video</h6>
-                        <canvas id="capturedCam" width="320" height="240"></canvas>
-                        <h4>@msgCam</h4>
-                    </center>
-                </div>
-            </div>
+
+            @if (IsInitialized)
+            {
+
+                @if (!IsCamGettingReady && !IsStartingStreaming)
+                {
+                    <input type="button" class="btn-sm btn-@(IsCamReady ? "danger" : "success")" @onclick="ToggleCam" value="@((IsCamReady ? "Close Camera" : "Open Camera"))" />
+                }
+                else
+                {
+                    <h2>Opening Camera... 📷 Please Allow if asked for camera Permissions 📷 </h2>
+                }
+
+                @if (!IsStartingStreaming)
+                {
+                    <input type="button" class="btn-sm btn-@(IsStreaming ? "danger" : "success")" @onclick="ToggleStreaming" value="@((IsStreaming ? "Stop Streaming" : "Start Streaming"))" />
+                }
+            }
+
             <hr />
             <div class="row">
                 <div class="col-md-4">
                     <center class="Bordered-Box">
-                        <h6>Live Screen</h6>
-                        <video id="liveScreen" width="480" height="360" autoplay></video>
+                        <h6>Live Feed</h6>
+                        <video id="live" width="480" height="360" autoplay></video>
                     </center>
                 </div>
                 <div class="col-md-4">
                     <center class="Bordered-Box">
-                        <h6>Compressed Screen feed</h6>
-                        <canvas id="CompCavasScreen" width="480" height="360"></canvas>
-                        <h6>@(RunLoopScreen ? "⬤":"⏹")</h6>
-                    </center>
-                </div>
-                <div class="col-md-4">
-                    <center class="Bordered-Box">
-                        <h6>Captured Screen Video</h6>
-                        <canvas id="capturedScreen" width="320" height="240"></canvas>
-                        <h4>@msgScreen</h4>
+                        <h6>Compressed Feed</h6>
+                        <canvas id="MidCanvas" width="480" height="360"></canvas>
+                        <h6>@(IsLiveReady ? "⬤":"⏹")</h6>
                     </center>
                 </div>
             </div>
@@ -66,14 +50,8 @@
             <div class="row">
                 <div class="col-md-6">
                     <center class="Bordered-Box">
-                        <h5>Peer simulation Cam</h5>
-                        <video id="camPerview" width="1280" height="720" autoplay></video>
-                    </center>
-                </div>
-                <div class="col-md-6">
-                    <center class="Bordered-Box">
-                        <h5>Peer simulation Screen</h5>
-                        <video id="screenPreview" width="1280" height="720" autoplay></video>
+                        <h5>Peer simulation</h5>
+                        <video id="Viewer" width="1280" height="720" autoplay controls></video>
                     </center>
                 </div>
             </div>
@@ -92,21 +70,26 @@
     public bool MeetingStarted = false;
 
     public string stat { get; set; }
-    public string msgCam { get; set; }
-    public string msgScreen { get; set; }
-    public bool IsRecordingCam = false;
-    public bool IsRecordingScreen = false;
+    public string msg { get; set; }
 
+    public bool IsInitialized = false;
 
+    public bool IsCamReady = false;
+    public bool IsCamGettingReady = false;
+    public bool IsScreenReady = false;
+    public bool IsLiveReady => IsCamReady || IsScreenReady;
 
-    public System.Timers.Timer Timer;
+    public bool IsStreaming = false;
+    public bool IsStartingStreaming = false;
+    public System.Timers.Timer StreamerTimer;
+
     public System.Diagnostics.Stopwatch Stopwatch = new System.Diagnostics.Stopwatch();
 
     static FileAsyncManager<string> fileAsyncManager;
     static FileAsyncManager<string> downloadAsyncManager;
 
     MeetingStreamerSettings settings;
-    static MeetingPeerSettings PeerSettings;
+    MeetingPeerSettings PeerSettings;
 
 
 
@@ -115,115 +98,148 @@
         await base.OnAfterRenderAsync(firstRender);
 
 
-        if (firstRender)
+        if (!IsInitialized)
         {
-            Console.WriteLine("I'm hit");
 
             Stopwatch.Start();
 
             stat = await JsRuntime.InvokeAsync<string>("SayHi", "C Sharp");
 
             settings = Vidusaviya.shasra.Testing.RepoInfo.TestMeeting;
+
+            await JsRuntime.InvokeVoidAsync("InitializeViewer");
+            await JsRuntime.InvokeVoidAsync("InitializeStreamer");
+
+            StreamerTimer = new System.Timers.Timer(LoopIntervel);
+            StreamerTimer.Elapsed += StreamLoop;
+
             await StartMeeting();
 
-            stat = await JsRuntime.InvokeAsync<string>("StartPreviewCam", Array.Empty<string>());
             stat = await downloadAsyncManager.Thread.FileClient.Upload("", "");
 
+            IsInitialized = true;
+            await InvokeAsync(StateHasChanged);
         }
     }
 
-    async void CaptureCam()
+
+
+
+
+    async void ToggleCam()
     {
+        IsCamGettingReady = true;
 
-        await JsRuntime.InvokeVoidAsync("SnapCam", "liveCam", "capturedCam");
-        var imageBytes = await JsRuntime.InvokeAsync<string>("GetImageDataCam", "capturedCam", "image/bmp");
-        // var data = Convert.FromBase64String(imageBytes); // get the image as byte array
-    }
-    async void CaptureScreen()
-    {
-
-        await JsRuntime.InvokeAsync<string>("StartPreviewScreen", Array.Empty<string>());
-        await JsRuntime.InvokeVoidAsync("SnapScreen", "liveScreen", "capturedScreen");
-        var imageBytes = await JsRuntime.InvokeAsync<string>("GetImageDataScreen", "capturedScreen", "image/bmp");
-        // var data = Convert.FromBase64String(imageBytes); // get the image as byte array
-    }
-
-
-    async void ToggleRecordingCam()
-    {
-        IsRecordingCam = !IsRecordingCam;
-
-        if (IsRecordingCam)
+        if (IsCamReady)
         {
-            await JsRuntime.InvokeVoidAsync("StartRecCam");
-
-            RunLoopCam = true;
-
-            Timer = new System.Timers.Timer(LoopIntervel);
-            Timer.Elapsed += StreamLoopCam;
-
-            Timer.Start();
-
-            // await this.InvokeAsync(StateHasChanged);
-
-
+            await CloseLive();
         }
         else
         {
-
-            RunLoopCam = false;
-            Timer.Stop();
-
-            await JsRuntime.InvokeVoidAsync("StopRecCam");
-
-            // await this.InvokeAsync(StateHasChanged);
+            await OpenCam();
         }
+
+        await InvokeAsync(StateHasChanged);
     }
 
-    async void ToggleRecordingScreen()
+    async Task OpenCam()
     {
-        IsRecordingScreen = !IsRecordingScreen;
+        IsCamReady = false;
+        IsScreenReady = false;
+        IsCamGettingReady = true;
 
-        if (IsRecordingScreen)
+        await JsRuntime.InvokeVoidAsync("OpenCam");
+
+        for (int i = 0; i < 60; i++)
         {
-            await JsRuntime.InvokeVoidAsync("StartRecScreen");
+            if (await JsRuntime.InvokeAsync<string>("IsLiveReady") == "R")
+            {
+                IsCamReady = true;
+                break;
+            }
+            else
+            {
+                await Task.Delay(500);
+            }
+        }
 
-            RunLoopScreen = true;
-
-            Timer = new System.Timers.Timer(LoopIntervel);
-            Timer.Elapsed += StreamLoopScreen;
-
-            Timer.Start();
-
-            // await this.InvokeAsync(StateHasChanged);
+        IsCamGettingReady = false;
 
 
+    }
+
+
+    async Task CloseLive()
+    {
+        IsCamReady = false;
+        IsScreenReady = false;
+
+        await JsRuntime.InvokeAsync<string>("CloseLive");
+
+        IsCamGettingReady = false;
+    }
+
+
+
+
+    public async void ToggleStreaming()
+    {
+
+        IsStartingStreaming = true;
+
+        if (IsStreaming)
+        {
+            await StopStreaming();
         }
         else
         {
-
-            RunLoopScreen = false;
-            Timer.Stop();
-
-            await JsRuntime.InvokeVoidAsync("StopRecScreen");
-
-            // await this.InvokeAsync(StateHasChanged);
+            await StartStreaming();
         }
+        await InvokeAsync(StateHasChanged);
     }
+
+
+
+    //Streaming is not Related to IsLiveReady. It can Stream without Live
+    async Task StartStreaming()
+    {
+        IsStreaming = false;
+        IsStartingStreaming = true;
+
+        await JsRuntime.InvokeAsync<string>("StartStreaming");
+        StreamLooping = false;
+        StreamerTimer.Start();
+
+        IsStreaming = true;
+        IsStartingStreaming = false;
+
+    }
+
+    async Task StopStreaming()
+    {
+        IsStreaming = false;
+        IsStartingStreaming = true;
+
+        StreamerTimer.Stop();
+        await JsRuntime.InvokeAsync<string>("StopStreaming");
+
+        IsStreaming = false;
+        IsStartingStreaming = false;
+    }
+
+
+
 
     long LoopIntervel = 100;
-    bool RunLoopCam = false;
-    bool RunLoopScreen = false;
-    bool StreamLoopingCam = false;
-    bool StreamLoopingScreen = false;
+    bool StreamLooping = false;
 
     Queue<string> uploads = new Queue<string>();
 
-    async void StreamLoopCam(object sender, System.Timers.ElapsedEventArgs e)
+    async void StreamLoop(object sender, System.Timers.ElapsedEventArgs e)
     {
         //Loop:
-        if (StreamLoopingCam) return;
-        StreamLoopingCam = true;
+        if (StreamLooping) return;
+        StreamLooping = true;
 
         var thread = fileAsyncManager.Advance();
 
@@ -236,7 +252,7 @@
             if (url != "NOTFOUND")
             {
                 uploads.Enqueue(url);
-                hap = $"Uploaded Cam Stream {url}";
+                hap = $"Uploaded Live Stream {url}";
             }
             else
             {
@@ -258,23 +274,23 @@
 
         Func<Task<string>> x = (async () =>
         {
-            string bloburl = await JsRuntime.InvokeAsync<string>("GetWCStreamCam", null);
+            string bloburl = await JsRuntime.InvokeAsync<string>("GetRec", null);
             if (bloburl != "")
             {
                 System.IO.Stream blb = await thread.FileClient.StreamFromURL(bloburl);
                 byte[] B = ReadFully(blb);
                 string I64 = Convert.ToBase64String(B);
 
-                //await JsRuntime.InvokeVoidAsync("AppendVideo", B);
+            //await JsRuntime.InvokeVoidAsync("AppendVideo", B);
 
-                msgCam = bloburl;
+            msg = bloburl;
 
                 string FileSuffix = (++thread.LastFileIndex).ToString();
                 return await thread.FileClient.Upload(FileSuffix, I64);
 
 
             }
-            msgCam = bloburl;
+            msg = bloburl;
             return $"NOTFOUND";
         }
 
@@ -283,79 +299,12 @@
 
         thread.task = x.Invoke();
 
-        StreamLoopingCam = false;
+        StreamLooping = false;
 
 
     }
 
-    async void StreamLoopScreen(object sender, System.Timers.ElapsedEventArgs e)
-    {
-        //Loop:
-        if (StreamLoopingScreen) return;
-        StreamLoopingScreen = true;
 
-        var thread = fileAsyncManager.Advance();
-
-        if (thread.task != null)
-        {
-            string url = await thread.task;
-
-            string hap;
-
-            if (url != "NOTFOUND")
-            {
-                uploads.Enqueue(url);
-                hap = $"Uploaded Screen Stream {url}";
-            }
-            else
-            {
-                hap = "";
-            }
-
-            long now = Stopwatch.ElapsedMilliseconds;
-            long d = now - thread.LastTime;
-            thread.LastTime = now;
-
-            if (hap != "")
-                Console.WriteLine($" {hap} in {d}");
-
-        }
-        else
-        {
-            thread.LastTime = Stopwatch.ElapsedMilliseconds;
-        }
-
-        Func<Task<string>> x = (async () =>
-        {
-            string bloburl = await JsRuntime.InvokeAsync<string>("GetWCStreamScreen", null);
-            if (bloburl != "")
-            {
-                System.IO.Stream blb = await thread.FileClient.StreamFromURL(bloburl);
-                byte[] B = ReadFully(blb);
-                string I64 = Convert.ToBase64String(B);
-
-                //await JsRuntime.InvokeVoidAsync("AppendVideo", B);
-
-                msgScreen = bloburl;
-
-                string FileSuffix = (++thread.LastFileIndex).ToString();
-                return await thread.FileClient.Upload(FileSuffix, I64);
-
-
-            }
-            msgScreen = bloburl;
-            return $"NOTFOUND";
-        }
-
-        );
-
-
-        thread.task = x.Invoke();
-
-        StreamLoopingScreen = false;
-
-
-    }
 
     private static byte[] ReadFully(Stream input)
     {
