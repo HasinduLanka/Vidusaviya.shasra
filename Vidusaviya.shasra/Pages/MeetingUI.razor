@@ -1,121 +1,121 @@
 ﻿@page "/Meet"
 
-    <div>
-        <div class="navbar-fixed-top hideDiv" style="padding-top:20px;">
-            <div class="row hiddenDiv" style="padding-right:20px;">
-                <div class="dropdown pull-right">
-                    <button class="btn btn-default" id="dropdownMenu" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><i class="fa fa-ellipsis-h"></i></button>
-                    <div class="dropdown-menu" aria-labelledby="dropdownMenu">
-                        <a class="dropdown-item" href="#">Full Screen</a>
-                        <a class="dropdown-item" href="#">Another action</a>
-                        <a class="dropdown-item" href="#">Something else here</a>
-                        <div class="dropdown-divider"></div>
-                        <a class="dropdown-item" href="#">Action 1</a>
-                    </div>
-                </div>
-                <div class="dropdown pull-right">
-                    <button class="btn btn-info pull-right" id="dropdownSettings" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><i class="fa fa-cogs"></i></button>
-                    <div class="dropdown-menu" aria-labelledby="dropdownSettings">
-                        <a class="dropdown-item" href="#">Action</a>
-                        <a class="dropdown-item" href="#">Another action</a>
-                        <a class="dropdown-item" href="#">Something else here</a>
-                        <div class="dropdown-divider"></div>
-                        <a class="dropdown-item" href="#">Action 1</a>
-                    </div>
+<div>
+    <div class="navbar-fixed-top hideDiv" style="padding-top:20px;">
+        <div class="row hiddenDiv" style="padding-right:20px;">
+            <div class="dropdown pull-right">
+                <button class="btn btn-default" id="dropdownMenu" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><i class="fa fa-ellipsis-h"></i></button>
+                <div class="dropdown-menu" aria-labelledby="dropdownMenu">
+                    <a class="dropdown-item" href="#">Full Screen</a>
+                    <a class="dropdown-item" href="#">Another action</a>
+                    <a class="dropdown-item" href="#">Something else here</a>
+                    <div class="dropdown-divider"></div>
+                    <a class="dropdown-item" href="#">Action 1</a>
                 </div>
             </div>
-            @if (!string.IsNullOrWhiteSpace(HeaderTxt))
-            {
-                <div class="row text-center" style="color:white;">@HeaderTxt</div>
-            }
-            @if (!MeetingStarted)
-            {
+            <div class="dropdown pull-right">
+                <button class="btn btn-info pull-right" id="dropdownSettings" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><i class="fa fa-cogs"></i></button>
+                <div class="dropdown-menu" aria-labelledby="dropdownSettings">
+                    <a class="dropdown-item" href="#">Action</a>
+                    <a class="dropdown-item" href="#">Another action</a>
+                    <a class="dropdown-item" href="#">Something else here</a>
+                    <div class="dropdown-divider"></div>
+                    <a class="dropdown-item" href="#">Action 1</a>
+                </div>
+            </div>
+        </div>
+        @if (!string.IsNullOrWhiteSpace(HeaderTxt))
+        {
+            <div class="row text-center" style="color:white;">@HeaderTxt</div>
+        }
+        @if (!MeetingStarted)
+        {
 
-                <div class="container" style="margin-top:10px;">
-                    <div class="Bordered-Box" style="height:50vh; background-color: white; background-image: url('images/webmeet.jpg');  background-repeat: no-repeat;   background-attachment: fixed; background-position:center center">
-                        <div class="row">
-                            <div class="col-md-8 col-md-offset-2 text-center">
-                                @if (IsHoster)
-                                {
-                                    <h4>Click 'Start Meeting' To Start Meeting</h4>
-                                    <p><a class="btn btn-success" @onclick="StartMeeting"><i class="fa fa-video-camera" style="padding-right:5px;"></i>Start Meeting</a><a class="btn btn-outline btn-primary"><i class="fa fa-cogs" style="padding-right:5px;"></i>Meeting Settings</a></p>
-                                }
-                                else
-                                {
-                                    <h4>Opps!!! Your Have To Wait Until Meeting Started!</h4>
-                                    <p><a class="btn btn-danger" @onclick="LeaveMeeting"><i class="fa fa-times-circle" style="padding-right:5px;"></i>Leave Meeting Now</a></p>
-                                }
-                            </div>
+            <div class="container" style="margin-top:10px;">
+                <div class="Bordered-Box" style="height:50vh; background-color: white; background-image: url('images/webmeet.jpg');  background-repeat: no-repeat;   background-attachment: fixed; background-position:center center">
+                    <div class="row">
+                        <div class="col-md-8 col-md-offset-2 text-center">
+                            @if (IsHoster)
+                            {
+                                <h4>Click 'Start Meeting' To Start Meeting</h4>
+                                <p><a class="btn btn-success" @onclick="StartMeeting"><i class="fa fa-video-camera" style="padding-right:5px;"></i>Start Meeting</a><a class="btn btn-outline btn-primary"><i class="fa fa-cogs" style="padding-right:5px;"></i>Meeting Settings</a></p>
+                            }
+                            else
+                            {
+                                <h4>Opps!!! Your Have To Wait Until Meeting Started!</h4>
+                                <p><a class="btn btn-danger" @onclick="LeaveMeeting"><i class="fa fa-times-circle" style="padding-right:5px;"></i>Leave Meeting Now</a></p>
+                            }
                         </div>
                     </div>
                 </div>
-            }
-        </div>
-        <canvas id="videoui" style="background-color:rgba(20, 19, 19, 0.99); width:100vw;height:100vh"></canvas>
-        @if (MeetingStarted)
-        {
-            <div class="navbar-fixed-bottom hideDiv" style="padding-bottom:15px;">
-                <center class="hiddenDiv">
-                    <div class="row">
-                        @if (AllowScreen)
-                        {
-                            <button class="btn btn-@(SharingSceren ? "danger" : "primary")" @onclick="(()=>SharingSceren=!SharingSceren)"><i class="fa fa-desktop"></i></button>
-                        }
-                        @if (AllowCamera)
-                        {
-                            <button class="btn btn-@(SharingCamerea ? "danger" : "success")" @onclick="(()=>SharingCamerea=!SharingCamerea)"><i class="fa fa-video-camera"></i></button>
-                        }
-                        @if (AllowAudio)
-                        {
-                            <button class="btn btn-@(Muted ? "success" : "warning")" @onclick="(()=>Muted=!Muted)"><i class="fa fa-microphone"></i></button>
-                        }
-                        <button class="btn btn-danger" data-toggle="modal" data-target="#leaveModal"><i class="fa fa-phone"></i></button>
-                    </div>
-                </center>
             </div>
         }
-
-        <!-- Modal -->
-        <div class="modal fade" id="leaveModal" tabindex="-1" role="dialog" aria-labelledby="leaveModalLabel" aria-hidden="true">
-            <div class="modal-dialog modal-sm" role="document">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <label id="leaveModalLabel">Warning!!!</label>
-                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                            <span aria-hidden="true">&times;</span>
-                        </button>
-                    </div>
-                    <div class="modal-body">
-                        Do You Want To @(IsHoster?"End":"Leave") Meeting?
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-                        <button type="button" class="btn btn-danger" @onclick="LeaveMeeting">@(IsHoster?"End":"Leave") Meeting</button>
-                    </div>
+    </div>
+    <canvas id="videoui" style="background-color:rgba(20, 19, 19, 0.99); width:100vw;height:100vh"></canvas>
+    @if (MeetingStarted)
+    {
+        <div class="navbar-fixed-bottom hideDiv" style="padding-bottom:15px;">
+            <center class="hiddenDiv">
+                <div class="row">
+                    @if (AllowScreen)
+                    {
+                        <button class="btn btn-@(SharingSceren ? "danger" : "primary")" @onclick="(()=>SharingSceren=!SharingSceren)"><i class="fa fa-desktop"></i></button>
+                    }
+                    @if (AllowCamera)
+                    {
+                        <button class="btn btn-@(SharingCamerea ? "danger" : "success")" @onclick="(()=>SharingCamerea=!SharingCamerea)"><i class="fa fa-video-camera"></i></button>
+                    }
+                    @if (AllowAudio)
+                    {
+                        <button class="btn btn-@(Muted ? "success" : "warning")" @onclick="(()=>Muted=!Muted)"><i class="fa fa-microphone"></i></button>
+                    }
+                    <button class="btn btn-danger" data-toggle="modal" data-target="#leaveModal"><i class="fa fa-phone"></i></button>
                 </div>
-            </div>
+            </center>
         </div>
+    }
 
-        <!-- Modal -->
-        <div class="modal fade" id="settingsModal" tabindex="-1" role="dialog" aria-labelledby="settingsModalLabel" aria-hidden="true">
-            <div class="modal-dialog" role="document">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <label id="settingsModalLabel">Meeting Settings</label>
-                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                            <span aria-hidden="true">&times;</span>
-                        </button>
-                    </div>
-                    <div class="modal-body">
-                       
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Done</button>
-                    </div>
+    <!-- Modal -->
+    <div class="modal fade" id="leaveModal" tabindex="-1" role="dialog" aria-labelledby="leaveModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-sm" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <label id="leaveModalLabel">Warning!!!</label>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    Do You Want To @(IsHoster?"End":"Leave") Meeting?
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-danger" data-dismiss="modal" @onclick="LeaveMeeting">@(IsHoster?"End":"Leave") Meeting</button>
                 </div>
             </div>
         </div>
     </div>
+
+    <!-- Modal -->
+    <div class="modal fade" id="settingsModal" tabindex="-1" role="dialog" aria-labelledby="settingsModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <label id="settingsModalLabel">Meeting Settings</label>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Done</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 
 @code {
     public bool IsHoster = true;
@@ -158,6 +158,6 @@
 
         }
         HeaderTxt = "";
-        MeetingStarted = true;
+        MeetingStarted = false;
     }
 }
