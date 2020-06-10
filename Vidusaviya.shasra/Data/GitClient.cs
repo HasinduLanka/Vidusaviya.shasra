@@ -72,6 +72,11 @@ namespace Vidusaviya.shasra
             return await httpClient.GetStreamAsync(URL);
         }
 
+        public async Task<byte[]> BytesFromURL(string URL)
+        {
+            return await httpClient.GetByteArrayAsync(URL);
+        }
+
         public IEnumerable<string> GetFiles(string Repo, string Path)
         {
             IReadOnlyList<RepositoryContent> result;
@@ -116,36 +121,55 @@ namespace Vidusaviya.shasra
         }
     }
 
-    public class GitDownloadCient : IFileClient<string>
+    public class GitDownloadCient : IFileClient<byte[], string>
     {
         public string URLPrefix;
-        public HttpClient HttpClient;
-        public HttpListener HttpListener;
+        public HttpClient HttpClient = new HttpClient();
+        //public VideoInjector Injector;
+        // public Task TListen;
+
+        public int LastQueueIndex = 0;
 
         public bool IsReadOnly => true;
 
         public GitDownloadCient(string uRLPrefix)
         {
             URLPrefix = uRLPrefix;
-            HttpClient = new HttpClient();
+
+            //if (injector == null) injector = new VideoInjector();
+            //Injector = injector;
+
+            //if (!Injector.Running) TListen = Injector.Start();
+
         }
+
 
         public GitDownloadCient(string Username, string Repo, string gitPath, string branch = "master")
         {
             URLPrefix = $"https://raw.githubusercontent.com/{Username}/{Repo}/{branch}/{gitPath}";
-            HttpClient = new HttpClient();
-            HttpListener = new HttpListener();
+
+
+            //if (injector == null) injector = new VideoInjector();
+            //Injector = injector;
+
+            //if (!Injector.Running) TListen = Injector.Start();
 
         }
 
-        public async Task<string> Upload(string FileSuffix, string Data)
-        {
-            return HttpListener.IsSupported ? "HttpListener Supported" : "HttpListener Not Supported";
-        }
 
-        public Task<string> Update(string FileSuffix, string Data)
+
+#pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
+
+        public Task<string> Upload(string FileSuffix, byte[] Data)
         {
             return null;
+        }
+
+#pragma warning restore CS1998
+
+        public async Task<string> Update(string FileSuffix, byte[] Data)
+        {
+            return await Upload(FileSuffix, Data);
         }
 
         public Task<string> Delete(string FileSuffix)
@@ -164,6 +188,11 @@ namespace Vidusaviya.shasra
             return await HttpClient.GetStringAsync(URL);
         }
 
+        public async Task<byte[]> BytesFromURL(string URL)
+        {
+            return await HttpClient.GetByteArrayAsync(URL);
+        }
+
         public Task<int> GetLastFileIndex() => new Task<int>(() => -1);
 
         public Task DeleteAll() => null;
@@ -174,7 +203,7 @@ namespace Vidusaviya.shasra
         }
     }
 
-    public class GitFileClient : IFileClient<string>
+    public class GitFileClient : IFileClient<string, string>
     {
         public string Username;
         public string Repo;
@@ -228,6 +257,8 @@ namespace Vidusaviya.shasra
         {
             return await GitClient.Download(URL);
         }
+
+        public async Task<byte[]> BytesFromURL(string URL) => await GitClient.BytesFromURL(URL);
 
 
         public IEnumerable<string> GetFiles() => GitClient.GetFiles(Repo, Path);

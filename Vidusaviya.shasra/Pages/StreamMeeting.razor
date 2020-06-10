@@ -41,7 +41,7 @@
                 <div class="col-md-4">
                     <center class="Bordered-Box">
                         <h6>Compressed Feed</h6>
-                        <canvas id="MidCanvas" width="480" height="360"></canvas>
+                        <canvas id="MidCanvas" width="720" height="480"></canvas>
                         <h6>@(IsLiveReady ? "⬤":"⏹")</h6>
                     </center>
                 </div>
@@ -51,7 +51,7 @@
                 <div class="col-md-6">
                     <center class="Bordered-Box">
                         <h5>Peer simulation</h5>
-                        <video id="Viewer" width="1280" height="720" autoplay controls></video>
+                        <video id="Viewer" width="1280" height="720" autoplay controls controlsList="nodownload" preload="auto"></video>
                     </center>
                 </div>
             </div>
@@ -65,7 +65,9 @@
 {
 
 
-    // style="display: none"
+    // style="display: none" muted
+
+    //public bool IsDebug = false;
 
     public bool MeetingStarted = false;
 
@@ -85,8 +87,8 @@
 
     public System.Diagnostics.Stopwatch Stopwatch = new System.Diagnostics.Stopwatch();
 
-    static FileAsyncManager<string> fileAsyncManager;
-    static FileAsyncManager<string> downloadAsyncManager;
+    static FileAsyncManager<string, string> fileAsyncManager;
+    static FileAsyncManager<byte[], string> downloadAsyncManager;
 
     MeetingStreamerSettings settings;
     MeetingPeerSettings PeerSettings;
@@ -107,15 +109,20 @@
 
             settings = Vidusaviya.shasra.Testing.RepoInfo.TestMeeting;
 
-            await JsRuntime.InvokeVoidAsync("InitializeViewer");
-            await JsRuntime.InvokeVoidAsync("InitializeStreamer");
+            ValueTask InitV = JsRuntime.InvokeVoidAsync("InitializeViewer");
+            ValueTask InitStr = JsRuntime.InvokeVoidAsync("InitializeStreamer");
 
             StreamerTimer = new System.Timers.Timer(LoopIntervel);
             StreamerTimer.Elapsed += StreamLoop;
 
-            await StartMeeting();
+            Task InitM = StartMeeting();
 
-            stat = await downloadAsyncManager.Thread.FileClient.Upload("", "");
+            // stat = await downloadAsyncManager.Thread.FileClient.Upload("", null);
+
+            await InitV;
+            await InitStr;
+            await InitM;
+            //Console.WriteLine(await downloadAsyncManager.Thread.FileClient.Delete(null));
 
             IsInitialized = true;
             await InvokeAsync(StateHasChanged);
@@ -206,7 +213,7 @@
         IsStreaming = false;
         IsStartingStreaming = true;
 
-        await JsRuntime.InvokeAsync<string>("StartStreaming");
+        await JsRuntime.InvokeAsync<string>("StartStreaming", 1024000, 4000);
         StreamLooping = false;
         StreamerTimer.Start();
 
@@ -245,7 +252,7 @@
 
         if (thread.task != null)
         {
-            string url = await thread.task;
+            string url = (string)await thread.task;
 
             string hap;
 
@@ -272,26 +279,50 @@
             thread.LastTime = Stopwatch.ElapsedMilliseconds;
         }
 
-        Func<Task<string>> x = (async () =>
+        Func<Task<object>> x = (async () =>
         {
-            string bloburl = await JsRuntime.InvokeAsync<string>("GetRec", null);
-            if (bloburl != "")
+            string bloburl = "";
+            while (bloburl == "")
             {
-                System.IO.Stream blb = await thread.FileClient.StreamFromURL(bloburl);
-                byte[] B = ReadFully(blb);
-                string I64 = Convert.ToBase64String(B);
-
-            //await JsRuntime.InvokeVoidAsync("AppendVideo", B);
-
-            msg = bloburl;
-
-                string FileSuffix = (++thread.LastFileIndex).ToString();
-                return await thread.FileClient.Upload(FileSuffix, I64);
-
-
+                bloburl = await JsRuntime.InvokeAsync<string>("GetRec", null);
+                await Task.Delay(300);
             }
-            msg = bloburl;
-            return $"NOTFOUND";
+
+
+            byte[] blb = await thread.FileClient.BytesFromURL(bloburl);
+
+            string I64;
+            if (thread.Aes != null)
+            {
+                I64 = thread.Aes.EncryptToBase64String(blb);
+            }
+            else
+            {
+                I64 = Convert.ToBase64String(blb);
+            }
+
+
+            string FileSuffix = (++thread.LastFileIndex).ToString();
+            string UpURL = await thread.FileClient.Upload(FileSuffix, I64);
+            I64 = null;
+
+            string DI64 = await thread.FileClient.DownloadFromURL(UpURL);
+
+
+        //string DI64 = I64;
+        //string UpURL = "";
+
+
+        if (thread.Aes != null)
+            {
+                DI64 = thread.Aes.DecryptBase64String(DI64);
+            }
+
+            await JsRuntime.InvokeVoidAsync("AddVideo", "data:video/webm;base64," + DI64);
+
+            msg = UpURL;
+            return UpURL;
+
         }
 
         );
@@ -329,11 +360,11 @@
 
                 PeerSettings = settings.PeerSettings();
                 int pscount = PeerSettings.URLPrefixes.Count();
-                downloadAsyncManager = new FileAsyncManager<string>(pscount);
+                downloadAsyncManager = new FileAsyncManager<byte[], string>(pscount);
 
                 for (int i = 0; i < pscount; i++)
                 {
-                    var thr = new FileAsyncThread<string>(new GitDownloadCient(PeerSettings.URLPrefixes[i]));
+                    var thr = new FileAsyncThread<byte[], string>(new GitDownloadCient(PeerSettings.URLPrefixes[i]));
                     downloadAsyncManager.Threads[i] = thr;
 
                 }
@@ -341,13 +372,13 @@
 
 
                 int count = settings.GithubInfos.Count;
-                fileAsyncManager = new FileAsyncManager<string>(count);
+                fileAsyncManager = new FileAsyncManager<string, string>(count);
 
 
                 int gi = 0;
                 foreach (var gr in settings.GithubInfos)
                 {
-                    var thru = new FileAsyncThread<string>(new GitFileClient(gr.UName, gr.ps, gr.Repo, gr.Path));
+                    var thru = new FileAsyncThread<string, string>(new GitFileClient(gr.UName, gr.ps, gr.Repo, gr.Path)) { Aes = settings.GetAes() };
                     fileAsyncManager.Threads[gi] = thru;
                     //thr.FileClient.DeleteAll().Wait();
 

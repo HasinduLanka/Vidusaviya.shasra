@@ -16,6 +16,10 @@ window.GetImageDataCam = async (el, format) => {
 
 
 
+var SegmentLength = 4000;
+
+
+
 
 var Live;
 var LiveReady = false;
@@ -32,13 +36,34 @@ var ChunkCount = 0;
 var Viewer;
 var Playlist = [];
 var IsPlaying = false;
-
+//var mediaSource;
+//var msurl;
+//var sourceBuffer;
 
 window.InitializeViewer = async () => {
 
     console.log("InitializeViewer");
 
     Viewer = document.getElementById('Viewer');
+
+    //mediaSource = new MediaSource();
+    //msurl = URL.createObjectURL(mediaSource);
+    //Viewer.src = msurl;
+    //Viewer.crossOrigin = 'anonymous';
+
+    //sourceBuffer = null;
+
+    //mediaSource.addEventListener("sourceopen", function () {
+    //    // NOTE: Browsers are VERY picky about the codec being EXACTLY
+    //    // right here. Make sure you know which codecs you're using!
+    //    sourceBuffer = mediaSource.addSourceBuffer("video/webm; codecs=\"opus,vp8\"");
+
+    //    // If we requested any video data prior to setting up the SourceBuffer,
+    //    // we want to make sure we only append one blob at a time
+    //    sourceBuffer.addEventListener("updateend", appendToSourceBuffer);
+    //});
+
+
 
     Viewer.addEventListener('ended', (event) => {
 
@@ -47,10 +72,16 @@ window.InitializeViewer = async () => {
             console.log('Cam Video end');
         }
         else {
+            // appendToSourceBuffer();
             Viewer.src = Playlist.shift();
             Viewer.play();
             console.log('Cam Video Replaying');
         }
+    });
+
+    Viewer.addEventListener('error', () => {
+        IsPlaying = false;
+        console.log('Cam Video Error');
     });
 
 
@@ -71,7 +102,7 @@ window.InitializeStreamer = async () => {
         var $this = this; //cache
         (function loop() {
             if (!$this.paused && !$this.ended) {
-                ctx.drawImage($this, 0, 0, 480, 360);
+                ctx.drawImage($this, 0, 0, 720, 480);
                 setTimeout(loop, 1000 / 8); // drawing at 8 fps
             }
         })();
@@ -120,23 +151,25 @@ window.CloseLive = async () => {
 }
 
 
-window.StartStreaming = async () => {
+window.StartStreaming = async (videoBitrate, segmentlength) => {
+
 
     recordedChunks = [];
     ChunkCount = 0;
 
     var options = {
         audioBitsPerSecond: 128000,
-        videoBitsPerSecond: 1024000,
+        videoBitsPerSecond: videoBitrate,
         mimeType: 'video/webm'
     }
 
     IsStreaming = true;
+    SegmentLength = segmentlength;
 
     mediaRecorder = new MediaRecorder(midstream, options);
     mediaRecorder.ondataavailable = handleDataAvailableCam;
 
-    mediaRecorder.start(3000);
+    mediaRecorder.start(SegmentLength);
     console.log(mediaRecorder.state);
     console.log("recorder started");
 
@@ -150,7 +183,7 @@ function handleDataAvailableCam(event) {
 
         if (IsStreaming) {
             mediaRecorder.stop();
-            mediaRecorder.start(3000);
+            mediaRecorder.start(SegmentLength);
         }
         console.log("Camcorder " + mediaRecorder.state + "  #" + ChunkCount + " data read " + (event.data.size / 1024) + " KB");
     }
@@ -177,7 +210,7 @@ window.GetRec = async () => {
         var blb = window.URL.createObjectURL(superBuffer);
 
         recordedChunks = [];
-        window.AddVideo(blb);
+        //window.AddVideo(blb);
 
         return blb;
     }
@@ -189,7 +222,11 @@ window.AddVideo = async (blb) => {
 
     if (IsPlaying == false) {
 
+        Viewer.type = "video/webm";
         Viewer.src = blb;
+
+        Playlist.push(blb);
+        //appendToSourceBuffer();
         Viewer.play();
 
         console.log('Playlist started');
@@ -197,10 +234,42 @@ window.AddVideo = async (blb) => {
     }
     else {
         Playlist.push(blb);
+        //appendToSourceBuffer();
         console.log('Added to playlist');
 
     }
 
+}
+
+// 5. Use `SourceBuffer.appendBuffer()` to add all of your chunks to the video
+function appendToSourceBuffer() {
+    if (
+        mediaSource.readyState === "open" &&
+        sourceBuffer &&
+        sourceBuffer.updating === false &&
+        Playlist.length != 0
+    ) {
+
+        B64toBlob(Playlist.shift()).then(function (B) {
+            B.arrayBuffer().then(function (AB) {
+                sourceBuffer.appendBuffer(AB);
+            });
+        });
+
+    }
+
+    // Limit the total buffer size to 20 minutes
+    // This way we don't run out of RAM
+    if (
+        Viewer.buffered.length &&
+        Viewer.buffered.end(0) - Viewer.buffered.start(0) > 240
+    ) {
+        sourceBuffer.remove(0, Viewer.buffered.end(0) - 240)
+    }
+}
+
+function B64toBlob(b64) {
+    return fetch(b64).then(r => r.blob());
 }
 
 
