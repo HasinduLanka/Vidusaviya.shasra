@@ -1,0 +1,53 @@
+﻿@using Microsoft.AspNetCore.Components
+
+<select class="@CssClass" id="@Id" @bind="SelectedValue">
+    @if (Text != null)
+    {
+        <option selected disabled value="">@Text</option>
+    }
+    @if (DataSource != null)
+    {
+        @for (int i = 0; i < DataSource.Count(); i++)
+        {
+            string val = DataSource[i];
+            int s = i;
+            @if (SelectedValue != val)
+            {
+                <option value="@val">@val</option>
+            }
+            else
+            {
+                <option selected value="@val">@val</option>
+                SelectedIndex = s;
+            }
+        }
+    }
+</select>
+
+@code {
+    [Parameter] public string Text { get; set; }
+    [Parameter] public string CssClass { get; set; }
+    [Parameter] public string Id { get; set; }
+    [Parameter] public List<string> DataSource { get; set; }
+    [Parameter] public bool Required { get; set; }
+    [Parameter] public int SelectedIndex { get; set; }
+    [Parameter]
+    public string SelectedValue
+    {
+        get { return vSel; }
+        set
+        {
+            if (value == null) return;
+            if (vSel != value)
+            {
+                vSel = value;
+                ValueChanged?.Invoke(value);
+                StateHasChanged();
+            }
+        }
+    }
+
+    private string vSel;
+
+    [Parameter] public Action<string> ValueChanged { get; set; }
+}
