@@ -201,10 +201,6 @@ body::-webkit-scrollbar-thumb {
 }
 
 @media (min-width: 1200px) {
-    app {
-        flex-direction: row;
-    }
-
     .sidebar {
         width: 100%;
         height: 100%;
