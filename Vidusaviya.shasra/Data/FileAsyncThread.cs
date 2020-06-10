@@ -5,33 +5,36 @@ using System.Threading.Tasks;
 
 namespace Vidusaviya.shasra
 {
-    public class FileAsyncThread<T>
+    public class FileAsyncThread<TU, TD>
     {
-        public IFileClient<T> FileClient;
-        public Task<T> task;
+        public IFileClient<TU, TD> FileClient;
+        public AesRij Aes;
+
+        public Task<object> task;
+
         public int LastFileIndex = 0;
         public long LastTime = 0;
 
-        public FileAsyncThread(IFileClient<T> fileClient)
+        public FileAsyncThread(IFileClient<TU, TD> fileClient)
         {
             FileClient = fileClient;
             task = null;
         }
     }
 
-    public class FileAsyncManager<T>
+    public class FileAsyncManager<TU, TD>
     {
         public int Size;
-        public FileAsyncThread<T>[] Threads;
+        public FileAsyncThread<TU, TD>[] Threads;
 
 
         public FileAsyncManager(int NumberOfThreads)
         {
             Size = NumberOfThreads;
-            Threads = new FileAsyncThread<T>[Size];
+            Threads = new FileAsyncThread<TU, TD>[Size];
         }
 
-        public FileAsyncManager(params FileAsyncThread<T>[] threads)
+        public FileAsyncManager(params FileAsyncThread<TU, TD>[] threads)
         {
             Size = threads.Length;
             Threads = threads;
@@ -40,13 +43,13 @@ namespace Vidusaviya.shasra
 
 
         public int CurrThread { get; private set; } = 0;
-        public FileAsyncThread<T> Thread => Threads[CurrThread];
+        public FileAsyncThread<TU, TD> Thread => Threads[CurrThread];
 
 
         /// <summary>
         /// Return Current Thread and Advance Thread Index (Wrapped)
         /// </summary>
-        public FileAsyncThread<T> Advance()
+        public FileAsyncThread<TU, TD> Advance()
         {
             int ret = CurrThread;
             CurrThread++;

@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Security.Cryptography;
 using System.Threading.Tasks;
 
 namespace Vidusaviya.shasra
@@ -27,6 +28,36 @@ namespace Vidusaviya.shasra
 
         public EncryptionType EncType = EncryptionType.None;
         public string Key;
+        public AesRij GetAes()
+        {
+            int ChunkSize;
+            CipherMode mode;
+
+            switch (EncType)
+            {
+                case EncryptionType.None:
+                    return null;
+
+                case EncryptionType.AES128EBC:
+                    ChunkSize = 128;
+                    mode = CipherMode.ECB;
+                    break;
+                case EncryptionType.AES128CBC:
+                    ChunkSize = 128;
+                    mode = CipherMode.CBC;
+                    break;
+                case EncryptionType.AES256CBC:
+                    ChunkSize = 256;
+                    mode = CipherMode.CBC;
+                    break;
+                default:
+                    ChunkSize = 128;
+                    mode = CipherMode.ECB;
+                    break;
+            }
+
+            return new AesRij(Key, ChunkSize, mode);
+        }
 
         //Auto Gen
         public MeetingPeerSettings PeerSettings()
