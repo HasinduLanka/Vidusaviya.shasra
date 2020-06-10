@@ -1182,3 +1182,12 @@ min-height:50px;
 .hideDiv:hover .hiddenDiv {
     display: block
 }
+
+.chat-popup {
+    display: none;
+    position: fixed;
+    bottom: 70px;
+    right: 15px;
+    z-index: 9;
+    width:300px;
+}

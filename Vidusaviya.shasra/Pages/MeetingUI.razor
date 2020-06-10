@@ -29,7 +29,7 @@
                             @if (IsHoster)
                             {
                                 <h4 style="color:white">Click 'Start Meeting' To Start Meeting</h4>
-                                <p><a class="btn btn-success" @onclick="StartMeeting"><i class="fa fa-video-camera" style="padding-right:8px;"></i>Start Meeting</a><a class="btn btn-outline btn-info"  data-toggle="modal" data-target="#settingsModal"><i class="fa fa-cogs" style="padding-right:8px;"></i>Meeting Settings</a></p>
+                                <p><a class="btn btn-success" @onclick="StartMeeting"><i class="fa fa-video-camera" style="padding-right:8px;"></i>Start Meeting</a><a class="btn btn-outline btn-info" data-toggle="modal" data-target="#settingsModal"><i class="fa fa-cogs" style="padding-right:8px;"></i>Meeting Settings</a></p>
                             }
                             else
                             {
@@ -60,8 +60,15 @@
                     {
                         <button class="btn btn-@(Muted ? "success" : "warning")" @onclick="(()=>Muted=!Muted)"><i class="fa fa-microphone"></i></button>
                     }
+                    @if (AllowChat)
+                    {
+                        <button class="btn btn-info" onclick="togleChat()"><i class="fa fa-comments"></i></button>
+                    }
                 </div>
             </center>
+        </div>
+        <div class="chat-popup Bordered-Box" id="chatBox">
+            <div id="disqus_thread"></div>
         </div>
     }
 
@@ -161,9 +168,12 @@
     public bool AllowAudio = false;
     public bool AllowCamera = false;
     public bool AllowScreen = false;
+    public bool AllowChat = true;
 
     public string HeaderTxt = "";
     public string HeaderTxtColor = "success";
+
+    private string Script = @"<script>(function() { var d = document, s = d.createElement('script');s.src = 'https://vidusaviya-shasthra.disqus.com/embed.js';s.setAttribute('data-timestamp', +new Date());(d.head || d.body).appendChild(s);})();</script>"+ @"            <noscript>Please enable JavaScript to view the <a href='https://disqus.com/?ref_noscript'>comments powered by Disqus.</a></noscript>";
 
     List<string> Videoresolutions = new List<string> {
         "256 × 144 [144p]",
