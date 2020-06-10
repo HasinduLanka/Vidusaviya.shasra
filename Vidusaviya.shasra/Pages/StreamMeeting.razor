@@ -35,13 +35,13 @@
                 <div class="col-md-4">
                     <center class="Bordered-Box">
                         <h6>Live Feed</h6>
-                        <video id="live" width="480" height="360" autoplay></video>
+                        <video id="live" autoplay></video>
                     </center>
                 </div>
                 <div class="col-md-4">
                     <center class="Bordered-Box">
                         <h6>Compressed Feed</h6>
-                        <canvas id="MidCanvas" width="720" height="480"></canvas>
+                        <canvas id="MidCanvas"></canvas>
                         <h6>@(IsLiveReady ? "⬤":"⏹")</h6>
                     </center>
                 </div>
@@ -213,7 +213,7 @@
         IsStreaming = false;
         IsStartingStreaming = true;
 
-        await JsRuntime.InvokeAsync<string>("StartStreaming", 1024000, 4000);
+        await JsRuntime.InvokeAsync<string>("StartStreaming", 4096000, 4000);
         StreamLooping = false;
         StreamerTimer.Start();
 
@@ -285,7 +285,7 @@
             while (bloburl == "")
             {
                 bloburl = await JsRuntime.InvokeAsync<string>("GetRec", null);
-                await Task.Delay(300);
+                await Task.Delay(500);
             }
 
 
@@ -302,18 +302,18 @@
             }
 
 
-            string FileSuffix = (++thread.LastFileIndex).ToString();
-            string UpURL = await thread.FileClient.Upload(FileSuffix, I64);
-            I64 = null;
+            //string FileSuffix = (++thread.LastFileIndex).ToString();
+            //string UpURL = await thread.FileClient.Upload(FileSuffix, I64);
+            //I64 = null;
 
-            string DI64 = await thread.FileClient.DownloadFromURL(UpURL);
-
-
-        //string DI64 = I64;
-        //string UpURL = "";
+            //string DI64 = await thread.FileClient.DownloadFromURL(UpURL);
 
 
-        if (thread.Aes != null)
+            string DI64 = I64;
+            string UpURL = "";
+
+
+            if (thread.Aes != null)
             {
                 DI64 = thread.Aes.DecryptBase64String(DI64);
             }

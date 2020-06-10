@@ -22,7 +22,9 @@ var SegmentLength = 4000;
 
 
 var Live;
+var LiveStream;
 var LiveReady = false;
+
 
 var midstream;
 var midcanvas;
@@ -85,6 +87,24 @@ window.InitializeViewer = async () => {
     });
 
 
+
+    midcanvas = document.getElementById('MidCanvas');
+    // var ctx = midcanvas.getContext('2d');
+    midstream = midcanvas.captureStream(4);
+
+
+    //Viewer.addEventListener('play', function () {
+    //    var $this = this; //cache
+
+    //    (function loop() {
+    //        if (!$this.paused && !$this.ended) {
+    //            midcanvas.height = $this.videoHeight;
+    //            midcanvas.width = $this.videoWidth;
+    //            ctx.drawImage($this, 0, 0, $this.videoWidth, $this.videoHeight);
+    //            setTimeout(loop, 1000 / 16); // drawing at 8 fps
+    //        }
+    //    })();
+    //}, 0);
 }
 
 
@@ -94,36 +114,38 @@ window.InitializeStreamer = async () => {
 
     LiveReady = false;
     Live = document.getElementById('live');
-    midcanvas = document.getElementById('MidCanvas');
-    var ctx = midcanvas.getContext('2d');
-    midstream = midcanvas.captureStream(8);
-
-    Live.addEventListener('play', function () {
-        var $this = this; //cache
-        (function loop() {
-            if (!$this.paused && !$this.ended) {
-                ctx.drawImage($this, 0, 0, 720, 480);
-                setTimeout(loop, 1000 / 8); // drawing at 8 fps
-            }
-        })();
-    }, 0);
 
 }
 
 
 window.OpenCam = async () => {
+    var CamFace = 'F'
+    var frontCam = false;
+    if (CamFace == 'F') {
+        frontCam = true
+    }
 
     LiveReady = false;
 
     // Get access to the camera!
     if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-        navigator.mediaDevices.getUserMedia({ video: true, audio: true }).then(
+        navigator.mediaDevices.getUserMedia({
+            video: {
+                width: { min: 360, ideal: 640, max: 640 },
+                height: { min: 270, ideal: 360, max: 480 },
+                facingMode: (frontCam ? "user" : "environment"),
+                frameRate: { ideal: 6, max: 8 }
+            }, audio: true
+        }).then(
             function (stream) {
 
                 Live.srcObject = stream;
+                LiveStream = stream;
 
                 LiveReady = true;
                 Live.play();
+
+                console.log("Res " + Live.videoWidth + "x" + Live.videoHeight);
 
             });
     }
@@ -139,6 +161,7 @@ window.IsLiveReady = async () => {
 window.CloseLive = async () => {
 
     LiveReady = false;
+    LiveStream = midstream;
 
     var StopCount = 0;
     if (Live.srcObject) {
@@ -166,7 +189,7 @@ window.StartStreaming = async (videoBitrate, segmentlength) => {
     IsStreaming = true;
     SegmentLength = segmentlength;
 
-    mediaRecorder = new MediaRecorder(midstream, options);
+    mediaRecorder = new MediaRecorder(LiveStream, options);
     mediaRecorder.ondataavailable = handleDataAvailableCam;
 
     mediaRecorder.start(SegmentLength);
