@@ -42,7 +42,13 @@ namespace Vidusaviya.shasra
             await Client.Repository.Content.DeleteFile(Username, Repo, gitPath, new DeleteFileRequest($"{gitPath}", res.Sha, branch));
             return $"https://raw.githubusercontent.com/{Username}/{Repo}/{branch}/{gitPath}";
         }
-
+        public async Task<string> CreateRepo(string Name)
+        {
+            NewRepository newRepo = new NewRepository(Name);
+            newRepo.AutoInit = true;
+            await Client.Repository.Create(newRepo);
+            return $"https://raw.githubusercontent.com/{Username}/{Name}/";
+        }
 
         public async Task DeleteAll(string Repo, string gitPath, string branch = "master")
         {
