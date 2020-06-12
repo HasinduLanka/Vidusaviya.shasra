@@ -35,7 +35,7 @@
                 <div class="col-md-4">
                     <center class="Bordered-Box">
                         <h6>Live Feed</h6>
-                        <video id="live" autoplay></video>
+                        <video id="live" autoplay muted></video>
                     </center>
                 </div>
                 <div class="col-md-4">
@@ -112,7 +112,7 @@
             ValueTask InitV = JsRuntime.InvokeVoidAsync("InitializeViewer");
             ValueTask InitStr = JsRuntime.InvokeVoidAsync("InitializeStreamer");
 
-            StreamerTimer = new System.Timers.Timer(LoopIntervel);
+            StreamerTimer = new System.Timers.Timer(LoopIntervel - 300);
             StreamerTimer.Elapsed += StreamLoop;
 
             Task InitM = StartMeeting();
@@ -213,7 +213,7 @@
         IsStreaming = false;
         IsStartingStreaming = true;
 
-        await JsRuntime.InvokeAsync<string>("StartStreaming", 4096000, 4000);
+        await JsRuntime.InvokeAsync<string>("StartStreaming", 512000, LoopIntervel);
         StreamLooping = false;
         StreamerTimer.Start();
 
@@ -237,7 +237,7 @@
 
 
 
-    long LoopIntervel = 100;
+    long LoopIntervel = 4000;
     bool StreamLooping = false;
 
     Queue<string> uploads = new Queue<string>();
@@ -245,7 +245,11 @@
     async void StreamLoop(object sender, System.Timers.ElapsedEventArgs e)
     {
         //Loop:
-        if (StreamLooping) return;
+        while (StreamLooping)
+        {
+            await Task.Delay(100);
+        }
+
         StreamLooping = true;
 
         var thread = fileAsyncManager.Advance();
@@ -281,13 +285,17 @@
 
         Func<Task<object>> x = (async () =>
         {
-            string bloburl = "";
-            while (bloburl == "")
+            string bloburl = bloburl = await JsRuntime.InvokeAsync<string>("GetRec", null);
+            while (bloburl == "0")
             {
+                await Task.Delay(250);
                 bloburl = await JsRuntime.InvokeAsync<string>("GetRec", null);
-                await Task.Delay(500);
             }
-
+            while (bloburl == "1")
+            {
+                await Task.Delay(50);
+                bloburl = await JsRuntime.InvokeAsync<string>("GetRec", null);
+            }
 
             byte[] blb = await thread.FileClient.BytesFromURL(bloburl);
 
@@ -302,14 +310,14 @@
             }
 
 
-            //string FileSuffix = (++thread.LastFileIndex).ToString();
-            //string UpURL = await thread.FileClient.Upload(FileSuffix, I64);
-            //I64 = null;
+        //string FileSuffix = (++thread.LastFileIndex).ToString();
+        //string UpURL = await thread.FileClient.Upload(FileSuffix, I64);
+        //I64 = null;
 
-            //string DI64 = await thread.FileClient.DownloadFromURL(UpURL);
+        //string DI64 = await thread.FileClient.DownloadFromURL(UpURL);
 
 
-            string DI64 = I64;
+        string DI64 = I64;
             string UpURL = "";
 
 
@@ -382,8 +390,8 @@
                     fileAsyncManager.Threads[gi] = thru;
                     //thr.FileClient.DeleteAll().Wait();
 
-                    thru.LastFileIndex = await thru.FileClient.GetLastFileIndex();
-                    downloadAsyncManager.Threads[gi].LastFileIndex = thru.LastFileIndex;
+                    //thru.LastFileIndex = await thru.FileClient.GetLastFileIndex();
+                    //downloadAsyncManager.Threads[gi].LastFileIndex = thru.LastFileIndex;
 
                     Console.WriteLine($"{gi}. Selected LastFileIndex {thru.LastFileIndex}");
 

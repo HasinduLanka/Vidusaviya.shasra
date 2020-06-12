@@ -1,32 +1,11 @@
-﻿//DrawImage
-window.SnapCam = async (src, dest) => {
-    var canvas = document.getElementById(dest);
-    var context = canvas.getContext('2d');
-    var video = document.getElementById(src);
-
-    context.drawImage(video, 0, 0, 320, 240);
-}
-
-// Get image as base64 string
-window.GetImageDataCam = async (el, format) => {
-    let canvas = document.getElementById(el);
-    let dataUrl = canvas.toDataURL(format);
-    return dataUrl.split(',')[1];
-}
-
-
-
+﻿
 var SegmentLength = 4000;
-
-
-
 
 var Live;
 var LiveStream;
 var LiveReady = false;
 
 
-var midstream;
 var midcanvas;
 
 var mediaRecorder;
@@ -38,9 +17,9 @@ var ChunkCount = 0;
 var Viewer;
 var Playlist = [];
 var IsPlaying = false;
-//var mediaSource;
-//var msurl;
-//var sourceBuffer;
+var mediaSource;
+var msurl;
+var sourceBuffer;
 
 window.InitializeViewer = async () => {
 
@@ -52,6 +31,7 @@ window.InitializeViewer = async () => {
     //msurl = URL.createObjectURL(mediaSource);
     //Viewer.src = msurl;
     //Viewer.crossOrigin = 'anonymous';
+    //
 
     //sourceBuffer = null;
 
@@ -59,6 +39,7 @@ window.InitializeViewer = async () => {
     //    // NOTE: Browsers are VERY picky about the codec being EXACTLY
     //    // right here. Make sure you know which codecs you're using!
     //    sourceBuffer = mediaSource.addSourceBuffer("video/webm; codecs=\"opus,vp8\"");
+    //    sourceBuffer.mode = 'sequence';
 
     //    // If we requested any video data prior to setting up the SourceBuffer,
     //    // we want to make sure we only append one blob at a time
@@ -86,11 +67,11 @@ window.InitializeViewer = async () => {
         console.log('Cam Video Error');
     });
 
+    // Viewer.oncanplay = e => Viewer.play();
 
 
-    midcanvas = document.getElementById('MidCanvas');
     // var ctx = midcanvas.getContext('2d');
-    midstream = midcanvas.captureStream(4);
+
 
 
     //Viewer.addEventListener('play', function () {
@@ -115,6 +96,8 @@ window.InitializeStreamer = async () => {
     LiveReady = false;
     Live = document.getElementById('live');
 
+    midcanvas = document.getElementById('MidCanvas');
+
 }
 
 
@@ -131,11 +114,13 @@ window.OpenCam = async () => {
     if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
         navigator.mediaDevices.getUserMedia({
             video: {
-                width: { min: 360, ideal: 640, max: 640 },
+                width: { min: 360, ideal: 640, max: 720 },
                 height: { min: 270, ideal: 360, max: 480 },
                 facingMode: (frontCam ? "user" : "environment"),
                 frameRate: { ideal: 6, max: 8 }
-            }, audio: true
+            }, audio: {
+                echoCancellation: true
+            }
         }).then(
             function (stream) {
 
@@ -144,6 +129,22 @@ window.OpenCam = async () => {
 
                 LiveReady = true;
                 Live.play();
+
+                var ctx = midcanvas.getContext('2d');
+
+                Live.addEventListener('play', function () {
+                    var $this = this; //cache
+
+                    (function loop() {
+                        if (!$this.paused && !$this.ended) {
+                            midcanvas.height = $this.videoHeight;
+                            midcanvas.width = $this.videoWidth;
+                            ctx.drawImage($this, 0, 0, $this.videoWidth, $this.videoHeight);
+                            setTimeout(loop, 1000 / 16); // drawing at 8 fps
+                        }
+                    })();
+                }, 0);
+
 
                 console.log("Res " + Live.videoWidth + "x" + Live.videoHeight);
 
@@ -161,7 +162,8 @@ window.IsLiveReady = async () => {
 window.CloseLive = async () => {
 
     LiveReady = false;
-    LiveStream = midstream;
+    LiveStream = midcanvas.captureStream(8);
+
 
     var StopCount = 0;
     if (Live.srcObject) {
@@ -187,16 +189,22 @@ window.StartStreaming = async (videoBitrate, segmentlength) => {
     }
 
     IsStreaming = true;
-    SegmentLength = segmentlength;
+    SegmentLength = 4000;
 
+    if (LiveReady == false) {
+        LiveStream = midcanvas.captureStream(8);
+    }
     mediaRecorder = new MediaRecorder(LiveStream, options);
     mediaRecorder.ondataavailable = handleDataAvailableCam;
 
-    mediaRecorder.start(SegmentLength);
+
+    mediaRecorder.start(4000);
     console.log(mediaRecorder.state);
     console.log("recorder started");
 
 }
+
+
 
 
 function handleDataAvailableCam(event) {
@@ -204,11 +212,11 @@ function handleDataAvailableCam(event) {
         recordedChunks.push(event.data);
         ChunkCount += 1;
 
+        console.log("Camcorder " + mediaRecorder.state + "  #" + ChunkCount + " data read " + (event.data.size) + " B");
+
         if (IsStreaming) {
-            mediaRecorder.stop();
-            mediaRecorder.start(SegmentLength);
         }
-        console.log("Camcorder " + mediaRecorder.state + "  #" + ChunkCount + " data read " + (event.data.size / 1024) + " KB");
+        
     }
 }
 
@@ -225,7 +233,11 @@ window.StopStreaming = async () => {
 
 window.GetRec = async () => {
 
-    if (ChunkCount > 0) {
+    if (ChunkCount == 0) {
+        return "0";
+    } else if (ChunkCount == 1) {
+        return "1";
+    } else if (ChunkCount > 1) {
         ChunkCount = 0;
 
         var superBuffer = new Blob(recordedChunks, { type: "video/webm" });
@@ -234,12 +246,14 @@ window.GetRec = async () => {
 
         recordedChunks = [];
         //window.AddVideo(blb);
+        console.log("Returning superBuffer " + superBuffer.size);
 
         return blb;
     }
-    return "";
+
 
 }
+
 
 window.AddVideo = async (blb) => {
 
@@ -273,11 +287,16 @@ function appendToSourceBuffer() {
         Playlist.length != 0
     ) {
 
-        B64toBlob(Playlist.shift()).then(function (B) {
-            B.arrayBuffer().then(function (AB) {
-                sourceBuffer.appendBuffer(AB);
-            });
-        });
+        fetch(Playlist.shift()).then(response => response.arrayBuffer().then(
+            ab => sourceBuffer.appendBuffer(ab)
+        ));
+
+
+        //B64toBlob(Playlist.shift()).then(function (B) {
+        //     B.arrayBuffer().then(function (AB) {
+        //    sourceBuffer.appendBuffer(window.URL.createObjectURL(B));
+        //     });
+        //});
 
     }
 
