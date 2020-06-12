@@ -1,5 +1,5 @@
 ﻿@page "/Meet"
-
+@inject IJSRuntime js
 <div>
     <div class="navbar-fixed-top hideDiv" style="padding-top:20px;">
         <div class="row hiddenDiv" style="padding-right:20px;">
@@ -173,7 +173,7 @@
     public string HeaderTxt = "";
     public string HeaderTxtColor = "success";
 
-    private string Script = @"<script>(function() { var d = document, s = d.createElement('script');s.src = 'https://vidusaviya-shasthra.disqus.com/embed.js';s.setAttribute('data-timestamp', +new Date());(d.head || d.body).appendChild(s);})();</script>"+ @"            <noscript>Please enable JavaScript to view the <a href='https://disqus.com/?ref_noscript'>comments powered by Disqus.</a></noscript>";
+    private string Script = @"<script>(function() { var d = document, s = d.createElement('script');s.src = 'https://vidusaviya-shasthra.disqus.com/embed.js';s.setAttribute('data-timestamp', +new Date());(d.head || d.body).appendChild(s);})();</script>" + @"            <noscript>Please enable JavaScript to view the <a href='https://disqus.com/?ref_noscript'>comments powered by Disqus.</a></noscript>";
 
     List<string> Videoresolutions = new List<string> {
         "256 × 144 [144p]",
@@ -199,6 +199,12 @@
         Reset();
     }
 
+    protected override void OnAfterRender(bool firstRender)
+    {
+        base.OnAfterRender(firstRender);
+
+    }
+
     public void Reset()
     {
         if (IsHoster)
@@ -213,6 +219,7 @@
     {
         HeaderTxt = "";
         MeetingStarted = true;
+       // js.InvokeVoidAsync("InitChat");
     }
     public void LeaveMeeting()
     {
