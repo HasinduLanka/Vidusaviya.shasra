@@ -1,0 +1,137 @@
+﻿@inject Microsoft.AspNetCore.Components.NavigationManager NavigationManager;
+
+@if (!Reject)
+{
+    <div style="padding:10px; padding-left:15px;padding-right:15px;width:100%;">
+        @if (!string.IsNullOrWhiteSpace(msg))
+        {
+            <div class="alert alert-danger" role="alert">@msg</div>
+        }
+    <form>
+        <div class="row form-group Bordered-Box">
+            <h3 class="text-center">Meeting Room Details</h3>
+            <div class="row form-group">
+                <div class="col-md-12">
+                    <label for="rsif">Streaming ID</label>
+                    <input type="text" id="rsif" class="form-control" readonly required value="@Ssett.ID">
+                </div>
+            </div>
+            <div class="row form-group">
+                <div class="col-md-12">
+                    <label for="actT">Title</label>
+                    <input type="text" id="actT" class="form-control" placeholder="Room Title..." required @bind="Ssett.Name">
+                </div>
+            </div>
+            <div class="row form-group">
+                <div class="col-md-12">
+                    <label for="ades">Description</label>
+                    <textarea id="ades" class="form-control" @bind="Ssett.Description" placeholder="Enter Your Room Description..." rows="3"></textarea>
+                </div>
+            </div>
+        </div>
+        <div class="row form-group Bordered-Box">
+            <h3 class="text-center">Settings</h3>
+            <div class="row form-group">
+                <div class="col-md-4">
+                    <label for="res">Resolution</label>
+                    <input type="text" id="res" class="form-control" required>
+                </div>
+                <div class="col-md-4">
+                    <label for="fp">FPS</label>
+                    <input type="text" id="fp" class="form-control" required>
+                </div>
+                <div class="col-md-4">
+                    <label for="sl">Segment Length</label>
+                    <input type="text" id="sl" class="form-control" required>
+                </div>
+            </div>
+            <div class="row form-group">
+                <div class="col-md-12">
+                    <label for="actT">Encryption Type</label>
+                    <input type="text" id="actT" class="form-control" placeholder="Room Title..." required>
+                </div>
+            </div>
+        </div>
+        <div class="row form-group Bordered-Box">
+            <h3 class="text-center">Viewer Settings Details</h3>
+
+        </div>
+    </form>
+    </div>
+    <div style="padding:10px; padding-left:15px;padding-right:15px;width:100%;">
+        <form>
+            <div class="row form-group Bordered-Box" style="margin-bottom:0px;">
+                <div class="row form-group" style="margin-bottom:0px;">
+                    <div class="col-md-12">
+                        <div class="col-md-4">
+                            <input type="button" value="@TSubmit" class="btn btn-primary fill" @onclick="Sumbit">
+                        </div>
+                        @if (!AddingNew)
+                        {
+                            <div class="col-md-4">
+                                <input type="button" value="Delete" class="btn btn-danger fill" @onclick="(() => Delete())">
+                            </div>
+                        }
+                        <div class="col-md-4">
+                            <input type="button" value="Cancel" class="btn btn-default fill">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+}
+else
+{
+    <div class="alert alert-danger" role="alert">
+        @msg  <a href="/DashBoard/1" class="alert-link">Click Here To Go To Dashboard</a>.
+    </div>
+}
+
+
+@code {
+
+    public bool AddingNew = false;
+    public bool Reject = false;
+
+    public int actID;
+
+    public string TSubmit;
+
+    string msg = "";
+    MeetingStreamerSettings Ssett;
+    [Parameter]
+    public string QSID { get; set; }
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+
+        if (QSID == null || QSID == "new")
+        {
+
+        }
+        else
+        {
+            if (int.TryParse(QSID, out actID))
+            {
+
+            }
+            else
+            {
+                Reject = true;
+                msg = $"Invalid Activity ID... Activity ID = {QSID}...";
+                return;
+            }
+        }
+    }
+
+    public void Sumbit()
+    {
+
+    }
+    public void Delete()
+    {
+        NavigationManager.NavigateTo(@"\DashBoard\1");
+    }
+}
