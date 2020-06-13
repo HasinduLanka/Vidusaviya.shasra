@@ -67,3 +67,8 @@ function initChatBox() {
     d.appendChild(s);
 
 }
+
+function showModal(id) {
+    $(id).modal('show');
+    console.log("Show Modal");
+}

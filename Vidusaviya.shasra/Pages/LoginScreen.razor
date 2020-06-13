@@ -45,7 +45,7 @@
                     <figure><img src="images/signup-image.jpg" alt="sing up image"></figure>
                     <p class="center-block">
                         <a class="btn-success btn-sm" @onclick="(()=>IsSignUp=false)">I am already member</a>
-                        <a class="btn-primary btn-sm">Join Meeting</a>
+                        <a class="btn-primary btn-sm" data-toggle="modal" data-target="#joinModal">Join Meeting</a>
                     </p>
                 </div>
             </div>
@@ -62,7 +62,7 @@ else
                     <figure><img src="images/signin-image.jpg" alt="sing up image"></figure>
                     <p class="center-block">
                         <a class="btn-success btn-sm" @onclick="(()=>IsSignUp=true)">Create an account</a>
-                        <a class="btn-primary btn-sm">Join Meeting</a>
+                        <a class="btn-primary btn-sm" data-toggle="modal" data-target="#joinModal">Join Meeting</a>
                     </p>
                 </div>
 
@@ -97,6 +97,48 @@ else
         </div>
     </section>
 }
+
+<!-- Modal -->
+<div class="modal fade" id="joinModal" tabindex="-1" role="dialog" aria-labelledby="joinModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+                <label class="modal-title">Join Meeting</label>
+            </div>
+            <div class="modal-body">
+                <div style="padding:10px; padding-left:15px;padding-right:15px;width:100%;">
+                    @if (!string.IsNullOrWhiteSpace(msg))
+                    {
+                        <div class="alert alert-danger" role="alert">@msg</div>
+                    }
+                    <form>
+                        <div class="row">
+                            <div class="row form-group">
+                                <div class="col-md-12">
+                                    <label for="rsif">Meeting ID</label>
+                                    <input type="text" id="rsif" class="form-control" required @bind="@MeetID">
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" data-dismiss="modal" @onclick="JoinMeeting">Join Meeting</button>
+            </div>
+        </div>
+    </div>
+</div>
 @code {
     [Parameter] public bool IsSignUp { get; set; } = false;
+    string msg = "";
+    string MeetID;
+    public void JoinMeeting()
+    {
+
+    }
 }

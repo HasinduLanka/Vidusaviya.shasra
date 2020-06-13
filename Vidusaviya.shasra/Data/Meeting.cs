@@ -22,9 +22,11 @@ namespace Vidusaviya.shasra
         public List<FireBaseInfo> FireBaseInfos { get; set; }
         public List<FTPInfo> FTPInfos { get; set; }
 
-        public int Resolution { get; set; } = 360; //360, 480, 720, 1280
-        public int FPS { get; set; } = 8; //8, 10, 16, 20, 24
-        public int SegmentLength { get; set; } = 4; //1, 2, 3, 4, 5, 8, 10 (Live),    20, 60, 120 (Non live)
+        public int CamResolution { get; set; } = 360; //360, 480, 720, 1280
+        public int CamFPS { get; set; } = 8; //8, 10, 16, 20, 24
+        public int ScreenResolution { get; set; } = 360; //360, 480, 720, 1280
+        public int ScreenFPS { get; set; } = 8; //8, 10, 16, 20, 24
+        public float SegmentLength { get; set; } = 4; //1, 2, 3, 4, 5, 8, 10 (Live),    20, 60, 120 (Non live)
 
         public EncryptionType EncType { get; set; } = EncryptionType.None;
         public string Key { get; set; }
@@ -94,20 +96,18 @@ namespace Vidusaviya.shasra
             }
             return meetingPeerSettings;
         }
-
     }
 
     public class MeetingPeerSettings
     {
         public int ID { get; set; }//ID
-
         public CDNType CDNType { get; set; }
-
         public EncryptionType EncType { get; set; } = EncryptionType.None;
         public string Key { get; set; } //BASE64 decryption key
-
         public List<string> URLPrefixes { get; set; }
-
+        public bool AllowViewerOpenCamera { get; set; }
+        public bool AllowViewerToShareScreen { get; set; }
+        public bool AllowViewerToUnmuteAudio { get; set; }
     }
 
     public class GithubInfo
@@ -117,7 +117,6 @@ namespace Vidusaviya.shasra
         public string Repo { get; set; }
         public string Branch { get; set; }
         public string Path { get; set; }
-
         public string PeerURLPrefix => $"https://raw.githubusercontent.com/{UName}/{Repo}/{Branch}/{Path}";
     }
 

@@ -1,165 +1,200 @@
 ﻿@page "/Meet"
 @inject IJSRuntime js
-<div>
-    <div class="navbar-fixed-top hideDiv" style="padding-top:20px;">
-        <div class="row hiddenDiv" style="padding-right:20px;">
-            <button class="btn-sm btn-danger" data-toggle="modal" data-target="#leaveModal" style="margin-left:25px;">@(IsHoster?"End":"Leave") Meeting</button>
-            <div class="dropdown pull-right">
-                <button class="btn btn-default" id="dropdownMenu" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><i class="fa fa-ellipsis-h"></i></button>
-                <div class="dropdown-menu" aria-labelledby="dropdownMenu" style="font-size:1.5rem;">
-                    <a class="dropdown-item" onclick="toggleFull()">Full Screen</a>
-                    <a class="dropdown-item" href="#">Meetig Info</a>
-                    <div class="dropdown-divider"></div>
-                    <a class="dropdown-item" href="#">About Us</a>
-                </div>
-            </div>
-            <button class="btn btn-info pull-right" data-toggle="modal" data-target="#settingsModal"><i class="fa fa-cogs"></i></button>
-        </div>
-        @if (!string.IsNullOrWhiteSpace(HeaderTxt))
-        {
-            <div class="row text-center text-@HeaderTxtColor" style="color:white;">@HeaderTxt</div>
-        }
-        @if (!MeetingStarted)
-        {
-
-            <div class="container" style="margin-top:10px;">
-                <div class="Bordered-Box">
-                    <div class="row">
-                        <div class="col-md-8 col-md-offset-2 text-center">
-                            @if (IsHoster)
-                            {
-                                <h4 style="color:white">Click 'Start Meeting' To Start Meeting</h4>
-                                <p><a class="btn btn-success" @onclick="StartMeeting"><i class="fa fa-video-camera" style="padding-right:8px;"></i>Start Meeting</a><a class="btn btn-outline btn-info" data-toggle="modal" data-target="#settingsModal"><i class="fa fa-cogs" style="padding-right:8px;"></i>Meeting Settings</a></p>
-                            }
-                            else
-                            {
-                                <h4 style="color:white">Opps!!! Your Have To Wait Until Meeting Started!</h4>
-                                <p><a class="btn btn-danger" @onclick="LeaveMeeting"><i class="fa fa-times-circle" style="padding-right:8px;"></i>Leave Meeting Now</a></p>
-                            }
-                        </div>
+    <div>
+        <div class="navbar-fixed-top hideDiv" style="padding-top:20px;">
+            <div class="row hiddenDiv" style="padding-right:20px;">
+                <button class="btn-sm btn-danger" data-toggle="modal" data-target="#leaveModal" style="margin-left:25px;">@(IsHoster?"End":"Leave") Meeting</button>
+                <div class="dropdown pull-right">
+                    <button class="btn btn-default" id="dropdownMenu" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><i class="fa fa-ellipsis-h"></i></button>
+                    <div class="dropdown-menu" aria-labelledby="dropdownMenu" style="font-size:1.5rem;">
+                        <a class="dropdown-item" onclick="toggleFull()">Full Screen</a>
+                        <a class="dropdown-item" href="#">Meetig Info</a>
+                        <div class="dropdown-divider"></div>
+                        <a class="dropdown-item" href="#">About Us</a>
                     </div>
                 </div>
+                <button class="btn btn-info pull-right" data-toggle="modal" data-target="#settingsModal"><i class="fa fa-cogs"></i></button>
             </div>
-        }
-    </div>
-    <canvas id="videoui" style="background-color:rgba(20, 19, 19, 0.99); width:100vw;height:100vh"></canvas>
-    @if (MeetingStarted)
-    {
-        <div class="navbar-fixed-bottom hideDiv" style="padding-bottom:15px;">
-            <center class="hiddenDiv">
-                <div class="row">
-                    @if (AllowScreen)
-                    {
-                        <button class="btn btn-@(SharingSceren ? "danger" : "primary")" @onclick="(()=>SharingSceren=!SharingSceren)"><i class="fa fa-desktop"></i></button>
-                    }
-                    @if (AllowCamera)
-                    {
-                        <button class="btn btn-@(SharingCamerea ? "danger" : "success")" @onclick="(()=>SharingCamerea=!SharingCamerea)"><i class="fa fa-video-camera"></i></button>
-                    }
-                    @if (AllowAudio)
-                    {
-                        <button class="btn btn-@(Muted ? "success" : "warning")" @onclick="(()=>Muted=!Muted)"><i class="fa fa-microphone"></i></button>
-                    }
-                    @if (AllowChat)
-                    {
-                        <button class="btn btn-info" onclick="togleChat()"><i class="fa fa-comments"></i></button>
-                    }
-                </div>
-            </center>
-        </div>
-        <div class="chat-popup Bordered-Box" id="chatBox">
-            <div id="disqus_thread"></div>
-        </div>
-    }
+            @if (!string.IsNullOrWhiteSpace(HeaderTxt))
+            {
+                <div class="row text-center text-@HeaderTxtColor" style="color:white;">@HeaderTxt</div>
+            }
+            @if (!MeetingStarted)
+            {
 
-    <!-- Modal -->
-    <div class="modal fade" id="leaveModal" tabindex="-1" role="dialog" aria-labelledby="leaveModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-sm" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                    <label class="modal-title">Warning!!!</label>
-                </div>
-                <div class="modal-body">
-                    Do You Want To @(IsHoster?"End":"Leave") Meeting?
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-                    <button type="button" class="btn btn-danger" data-dismiss="modal" @onclick="LeaveMeeting">@(IsHoster?"End":"Leave") Meeting</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Modal -->
-    <div class="modal fade" id="settingsModal" tabindex="-1" role="dialog" aria-labelledby="settingsModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                    <label class="modal-title">Meeting Settings</label>
-                </div>
-                <div class="modal-body">
-                    <ul class="nav nav-tabs">
-                        <li class="nav-item">
-                            <a class="nav-link active text-success" role="tab" data-toggle="tab" href="#tab-gen">Genaral</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-success" role="tab" data-toggle="tab" href="#tab-oth">Other</a>
-                        </li>
-                    </ul>
-                    <div class="tab-content">
-                        <div class="tab-pane active" role="tabpanel" id="tab-gen">
-                            <div style="padding:10px;width:100%;height:100%;">
-                                <form>
-                                    <div class="row form-group">
-                                        <div class="col-md-12">
-                                            <label class="text-success">Camera Video Quality</label>
-                                            <ComboBox CssClass="form-control" SelectedValue="@CamVideoresolution" ValueChanged="CamVideoresolution_Changed" DataSource="Videoresolutions" Text="Camera Video Quality"></ComboBox>
-                                        </div>
-                                        <div class="col-md-12">
-                                            <label for="svq" class="text-success">Screen Video Quality</label>
-                                            <ComboBox CssClass="form-control" Id="svq" SelectedValue="@ScreenVideoresolution" ValueChanged="ScreenVideoresolution_Changed" DataSource="Videoresolutions" Text="Screen Video Quality"></ComboBox>
-                                        </div>
-                                    </div>
-                                    <div class="Bordered-Box-Section"></div>
-                                    <div class="row form-group">
-                                        <div class="col-md-12">
-                                            <label class="text-success">Camera</label>
-                                            <ComboBox CssClass="form-control" SelectedValue="@CamVideoresolution" DataSource="Videoresolutions" Text="Select Camera"></ComboBox>
-                                        </div>
-                                        <div class="col-md-12">
-                                            <label class="text-success">Mic</label>
-                                            <ComboBox CssClass="form-control" SelectedValue="@ScreenVideoresolution" DataSource="Videoresolutions" Text="Select Mic"></ComboBox>
-                                        </div>
-                                        <div class="col-md-12">
-                                            <label class="text-success">Audio</label>
-                                            <ComboBox CssClass="form-control" SelectedValue="@ScreenVideoresolution" DataSource="Videoresolutions" Text="Select Speakers"></ComboBox>
-                                        </div>
-                                    </div>
-                                </form>
+                <div class="container" style="margin-top:10px;">
+                    <div class="Bordered-Box">
+                        <div class="row">
+                            <div class="col-md-8 col-md-offset-2 text-center">
+                                @if (IsHoster)
+                                {
+                                    <h4 style="color:white">Click 'Start Meeting' To Start Meeting</h4>
+                                    <p><a class="btn btn-success" @onclick="StartMeeting"><i class="fa fa-video-camera" style="padding-right:8px;"></i>Start Meeting</a><a class="btn btn-outline btn-info" data-toggle="modal" data-target="#settingsModal"><i class="fa fa-cogs" style="padding-right:8px;"></i>Meeting Settings</a></p>
+                                }
+                                else
+                                {
+                                    <h4 style="color:white">Opps!!! Your Have To Wait Until Meeting Started!</h4>
+                                    <p><a class="btn btn-danger" @onclick="LeaveMeeting"><i class="fa fa-times-circle" style="padding-right:8px;"></i>Leave Meeting Now</a></p>
+                                }
                             </div>
                         </div>
-                        <div class="tab-pane" role="tabpanel" id="tab-oth">
-                            <p>other</p>
-                        </div>
                     </div>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn-sm btn-outline btn-success" data-dismiss="modal">Done</button>
+            }
+        </div>
+        <canvas id="videoui" style="background-color:rgba(20, 19, 19, 0.99); width:100vw;height:100vh"></canvas>
+        @if (MeetingStarted)
+        {
+            <div class="navbar-fixed-bottom hideDiv" style="padding-bottom:15px;">
+                <center class="hiddenDiv">
+                    <div class="row">
+                        @if (AllowScreen)
+                        {
+                            <button class="btn btn-@(SharingSceren ? "danger" : "primary")" @onclick="(()=>SharingSceren=!SharingSceren)"><i class="fa fa-desktop"></i></button>
+                        }
+                        @if (AllowCamera)
+                        {
+                            <button class="btn btn-@(SharingCamerea ? "danger" : "success")" @onclick="(()=>SharingCamerea=!SharingCamerea)"><i class="fa fa-video-camera"></i></button>
+                        }
+                        @if (AllowAudio)
+                        {
+                            <button class="btn btn-@(Muted ? "success" : "warning")" @onclick="(()=>Muted=!Muted)"><i class="fa fa-microphone"></i></button>
+                        }
+                        @if (AllowChat)
+                        {
+                            <button class="btn btn-info" onclick="togleChat()"><i class="fa fa-comments"></i></button>
+                        }
+                    </div>
+                </center>
+            </div>
+            <div class="chat-popup Bordered-Box" id="chatBox">
+                <div id="disqus_thread"></div>
+            </div>
+        }
+
+        <!-- Modal -->
+        <div class="modal fade" id="leaveModal" tabindex="-1" role="dialog" aria-labelledby="leaveModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-sm" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                        <label class="modal-title">Warning!!!</label>
+                    </div>
+                    <div class="modal-body">
+                        Do You Want To @(IsHoster?"End":"Leave") Meeting?
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                        <button type="button" class="btn btn-danger" data-dismiss="modal" @onclick="LeaveMeeting">@(IsHoster?"End":"Leave") Meeting</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal -->
+        <div class="modal fade" id="settingsModal" tabindex="-1" role="dialog" aria-labelledby="settingsModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                        <label class="modal-title">Meeting Settings</label>
+                    </div>
+                    <div class="modal-body">
+                        <ul class="nav nav-tabs">
+                            <li class="nav-item">
+                                <a class="nav-link active text-success" role="tab" data-toggle="tab" href="#tab-gen">Genaral</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link text-success" role="tab" data-toggle="tab" href="#tab-oth">Other</a>
+                            </li>
+                        </ul>
+                        <div class="tab-content">
+                            <div class="tab-pane active" role="tabpanel" id="tab-gen">
+                                <div style="padding:10px;width:100%;height:100%;">
+                                    <form>
+                                        <div class="row form-group">
+                                            <div class="col-md-12">
+                                                <label class="text-success">Camera Video Quality</label>
+                                                <ComboBox CssClass="form-control" SelectedValue="@CamVideoresolution" ValueChanged="CamVideoresolution_Changed" DataSource="Videoresolutions" Text="Camera Video Quality"></ComboBox>
+                                            </div>
+                                            <div class="col-md-12">
+                                                <label for="svq" class="text-success">Screen Video Quality</label>
+                                                <ComboBox CssClass="form-control" Id="svq" SelectedValue="@ScreenVideoresolution" ValueChanged="ScreenVideoresolution_Changed" DataSource="Videoresolutions" Text="Screen Video Quality"></ComboBox>
+                                            </div>
+                                        </div>
+                                        <div class="Bordered-Box-Section"></div>
+                                        <div class="row form-group">
+                                            <div class="col-md-12">
+                                                <label class="text-success">Camera</label>
+                                                <ComboBox CssClass="form-control" SelectedValue="@CamVideoresolution" DataSource="Videoresolutions" Text="Select Camera"></ComboBox>
+                                            </div>
+                                            <div class="col-md-12">
+                                                <label class="text-success">Mic</label>
+                                                <ComboBox CssClass="form-control" SelectedValue="@ScreenVideoresolution" DataSource="Videoresolutions" Text="Select Mic"></ComboBox>
+                                            </div>
+                                            <div class="col-md-12">
+                                                <label class="text-success">Audio</label>
+                                                <ComboBox CssClass="form-control" SelectedValue="@ScreenVideoresolution" DataSource="Videoresolutions" Text="Select Speakers"></ComboBox>
+                                            </div>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                            <div class="tab-pane" role="tabpanel" id="tab-oth">
+                                <p>other</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn-sm btn-outline btn-success" data-dismiss="modal">Done</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal fade" id="nameModal" tabindex="-1" role="dialog" aria-labelledby="nameModalLabel" aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                        <label class="modal-title">Enter Your Name To Join Meeting</label>
+                    </div>
+                    <div class="modal-body">
+                        <div style="padding:10px; padding-left:15px;padding-right:15px;width:100%;">
+                            @if (!string.IsNullOrWhiteSpace(msg))
+                            {
+                                <div class="alert alert-danger" role="alert">@msg</div>
+                            }
+                            <form>
+                                <div class="row">
+                                    <div class="row form-group">
+                                        <div class="col-md-12">
+                                            <label for="rsifn">Your Name</label>
+                                            <input type="text" id="rsifn" class="form-control" required @bind="@Name">
+                                        </div>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                        <button type="button" class="btn btn-success" data-dismiss="modal" @onclick="StartMeeting">Join Meeting</button>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
-</div>
 
 
 @code {
-    public bool IsHoster = true;
+    public bool IsHoster = false;
     public bool MeetingStarted = false;
     public bool Muted = false;
     public bool SharingCamerea = false;
@@ -172,6 +207,10 @@
 
     public string HeaderTxt = "";
     public string HeaderTxtColor = "success";
+
+    public string Name;
+
+    string msg = "";
 
     private string Script = @"<script>(function() { var d = document, s = d.createElement('script');s.src = 'https://vidusaviya-shasthra.disqus.com/embed.js';s.setAttribute('data-timestamp', +new Date());(d.head || d.body).appendChild(s);})();</script>" + @"            <noscript>Please enable JavaScript to view the <a href='https://disqus.com/?ref_noscript'>comments powered by Disqus.</a></noscript>";
 
@@ -202,7 +241,10 @@
     protected override void OnAfterRender(bool firstRender)
     {
         base.OnAfterRender(firstRender);
-
+        if (firstRender&& !IsHoster)
+        {
+            js.InvokeAsync<string>("showModal", "#nameModal");
+        }
     }
 
     public void Reset()
@@ -219,7 +261,7 @@
     {
         HeaderTxt = "";
         MeetingStarted = true;
-       // js.InvokeVoidAsync("InitChat");
+        // js.InvokeVoidAsync("InitChat");
     }
     public void LeaveMeeting()
     {
