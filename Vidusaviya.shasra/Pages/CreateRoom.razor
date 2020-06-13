@@ -8,135 +8,129 @@
                 {
                     <div class="alert alert-danger" role="alert">@msg</div>
                 }
-                <form>
-                    <div class="row form-group Bordered-Box">
-                        <h3 class="text-center">Meeting Room Details</h3>
-                        <div class="row form-group">
-                            <div class="col-md-12">
-                                <label for="rsif">Meeting ID</label>
-                                <input type="text" id="rsif" class="form-control" readonly required value="@Ssett.ID">
-                            </div>
-                        </div>
-                        <div class="row form-group">
-                            <div class="col-md-12">
-                                <label for="actT">Title</label>
-                                <input type="text" id="actT" class="form-control" placeholder="Room Title..." required @bind="Ssett.Name">
-                            </div>
-                        </div>
-                        <div class="row form-group">
-                            <div class="col-md-12">
-                                <label for="ades">Description</label>
-                                <textarea id="ades" class="form-control" @bind="Ssett.Description" placeholder="Enter Your Room Description..." rows="3"></textarea>
-                            </div>
+            <form>
+                <div class="row form-group Bordered-Box">
+                    <h3 class="text-center">Meeting Room Details</h3>
+                    <div class="row form-group">
+                        <div class="col-md-12">
+                            <label for="rsif">Meeting ID</label>
+                            <input type="text" id="rsif" class="form-control" readonly required value="@Ssett.ID">
                         </div>
                     </div>
-                    <div class="row form-group Bordered-Box">
-                        <h3 class="text-center">Video & Audio Settings</h3>
-                        <div class="row form-group">
-                            <div class="col-md-6">
-                                <label for="res">Camera Video Quality</label>
-                                <ComboBox CssClass="form-control" Id="svq" SelectedValue="@CamVideoresolution" ValueChanged="CamVideoresolution_Changed" DataSource="Videoresolutions" Text="Camera Video Quality"></ComboBox>
-                            </div>
-                            <div class="col-md-6">
-                                <label for="fp">Camera Video FPS</label>
-                                <ComboBox CssClass="form-control" Id="svq" SelectedValue="@CamVideoFPS" ValueChanged="CamVideoFPS_Changed" DataSource="VideoFPS" Text="Camera Video FPS"></ComboBox>
-                            </div>
-                        </div>
-                        <div class="row form-group">
-                            <div class="col-md-6">
-                                <label for="res">Screen Video Quality</label>
-                                <ComboBox CssClass="form-control" Id="svq" SelectedValue="@ScreenVideoresolution" ValueChanged="ScreenVideoresolution_Changed" DataSource="Videoresolutions" Text="Screen Video Quality"></ComboBox>
-                            </div>
-                            <div class="col-md-6">
-                                <label for="fp">Screen Video FPS</label>
-                                <ComboBox CssClass="form-control" Id="svq" SelectedValue="@ScreenVideoFPS" ValueChanged="ScreenVideoFPS_Changed" DataSource="VideoFPS" Text="Screen Video FPS"></ComboBox>
-                            </div>
-                        </div>
-                        <div class="row form-group">
-                            <div class="col-md-6">
-                                <label for="sl">Segment Length</label>
-                                <ComboBox CssClass="form-control" Id="svq" SelectedValue="@Segmentlength" ValueChanged="SegmentLength_Changed" DataSource="SegMentLengths" Text="Segment Length"></ComboBox>
-                            </div>
-                            <div class="col-md-6">
-                                <label for="actT">Encryption Type</label>
-                                <ComboBox CssClass="form-control" Id="svq" SelectedValue="@Ssett.EncType.ToString()" ValueChanged="(s=> Ssett.EncType=Enum.Parse<EncryptionType>(s))" DataSource="Enum.GetNames(typeof(EncryptionType)).ToList()" Text="Camera Video FPS"></ComboBox>
-                            </div>
+                    <div class="row form-group">
+                        <div class="col-md-12">
+                            <label for="actT">Title</label>
+                            <input type="text" id="actT" class="form-control" placeholder="Room Title..." required @bind="Ssett.Name">
                         </div>
                     </div>
-                    <div class="row form-group Bordered-Box">
-                        <h3 class="text-center">Host Settings</h3>
-                        <div class="row form-group">
-                            <div class="col-md-12">
-                                <label for="res">Content Delivery Network Type</label>
-                                <ComboBox CssClass="form-control" Id="svq" SelectedValue="@Ssett.CDNType.ToString()" ValueChanged="(s=> Ssett.CDNType=Enum.Parse<CDNType>(s))" DataSource="Enum.GetNames(typeof(CDNType)).ToList()" Text="Camera Video FPS"></ComboBox>
-                            </div>
+                    <div class="row form-group">
+                        <div class="col-md-12">
+                            <label for="ades">Description</label>
+                            <textarea id="ades" class="form-control" @bind="Ssett.Description" placeholder="Enter Your Room Description..." rows="3"></textarea>
                         </div>
-                        @if (Ssett.CDNType == CDNType.FTP)
-                        {
-                            <div class="Bordered-Box-Section"></div>
-                        }
-                        else if (Ssett.CDNType == CDNType.Github)
-                        {
-                            <div class="Bordered-Box-Section"></div>
-                        }
-                        else if (Ssett.CDNType == CDNType.Firestore)
-                        {
-                            <div class="Bordered-Box-Section"></div>
-                        }
                     </div>
-                    <div class="row form-group Bordered-Box">
-                        <h3 class="text-center">Viewer Settings & Info</h3>
-                        <div class="row form-group">
-                            <div class="table-responsive">
-                                <table class="table">
-                                    <thead>
-                                    </thead>
-                                </table>
-                            </div>
+                </div>
+                <div class="row form-group Bordered-Box">
+                    <h3 class="text-center">Video & Audio Settings</h3>
+                    <div class="row form-group">
+                        <div class="col-md-6">
+                            <label for="res">Camera Video Quality</label>
+                            <ComboBox CssClass="form-control" Id="svq" SelectedValue="@CamVideoresolution" ValueChanged="CamVideoresolution_Changed" DataSource="Videoresolutions" Text="Camera Video Quality"></ComboBox>
                         </div>
+                        <div class="col-md-6">
+                            <label for="fp">Camera Video FPS</label>
+                            <ComboBox CssClass="form-control" Id="svq" SelectedValue="@CamVideoFPS" ValueChanged="CamVideoFPS_Changed" DataSource="VideoFPS" Text="Camera Video FPS"></ComboBox>
+                        </div>
+                    </div>
+                    <div class="row form-group">
+                        <div class="col-md-6">
+                            <label for="res">Screen Video Quality</label>
+                            <ComboBox CssClass="form-control" Id="svq" SelectedValue="@ScreenVideoresolution" ValueChanged="ScreenVideoresolution_Changed" DataSource="Videoresolutions" Text="Screen Video Quality"></ComboBox>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="fp">Screen Video FPS</label>
+                            <ComboBox CssClass="form-control" Id="svq" SelectedValue="@ScreenVideoFPS" ValueChanged="ScreenVideoFPS_Changed" DataSource="VideoFPS" Text="Screen Video FPS"></ComboBox>
+                        </div>
+                    </div>
+                    <div class="row form-group">
+                        <div class="col-md-6">
+                            <label for="sl">Segment Length</label>
+                            <ComboBox CssClass="form-control" Id="svq" SelectedValue="@Segmentlength" ValueChanged="SegmentLength_Changed" DataSource="SegMentLengths" Text="Segment Length"></ComboBox>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="actT">Encryption Type</label>
+                            <ComboBox CssClass="form-control" Id="svq" SelectedValue="@Ssett.EncType.ToString()" ValueChanged="(s=> Ssett.EncType=Enum.Parse<EncryptionType>(s))" DataSource="Enum.GetNames(typeof(EncryptionType)).ToList()" Text="Camera Video FPS"></ComboBox>
+                        </div>
+                    </div>
+                </div>
+                <div class="row form-group Bordered-Box">
+                    <h3 class="text-center">Host Settings</h3>
+                    <div class="row form-group">
+                        <div class="col-md-12">
+                            <label for="res">Content Delivery Network Type</label>
+                            <ComboBox CssClass="form-control" Id="svq" SelectedValue="@Ssett.CDNType.ToString()" ValueChanged="(s=> Ssett.CDNType=Enum.Parse<CDNType>(s))" DataSource="Enum.GetNames(typeof(CDNType)).ToList()" Text="Camera Video FPS"></ComboBox>
+                        </div>
+                    </div>
+                    @if (Ssett.CDNType == CDNType.FTP)
+                    {
                         <div class="Bordered-Box-Section"></div>
-                        <div class="row form-group">
-                            <div class="col-md-12">
-                                <label for="sl">Allow Viewer Open Camera</label>
-                                <ComboBox CssClass="form-control" Id="svq" SelectedValue="@(Psett.AllowViewerOpenCamera?"Yes":"No")" ValueChanged="@(v => { if (v == "Yes") Psett.AllowViewerOpenCamera = true; if (v == "No") Psett.AllowViewerOpenCamera = false;})" DataSource="YesNo" Text="Allow Viewer Open Camera"></ComboBox>
-                            </div>
-                        </div>
-                        <div class="row form-group">
-                            <div class="col-md-12">
-                                <label for="sl">Allow Viewer To Share Screen</label>
-                                <ComboBox CssClass="form-control" Id="svq" SelectedValue="@(Psett.AllowViewerToShareScreen?"Yes":"No")" ValueChanged="@(v => { if (v == "Yes") Psett.AllowViewerToShareScreen = true; if (v == "No") Psett.AllowViewerToShareScreen = false;})" DataSource="YesNo" Text="Allow Viewer To Share Screen"></ComboBox>
-                            </div>
-                        </div>
-                        <div class="row form-group">
-                            <div class="col-md-12">
-                                <label for="sl">Allow Viewer To Unmute Audio</label>
-                                <ComboBox CssClass="form-control" Id="svq" SelectedValue="@(Psett.AllowViewerToUnmuteAudio?"Yes":"No")" ValueChanged="@(v => { if (v == "Yes") Psett.AllowViewerToUnmuteAudio = true; if (v == "No") Psett.AllowViewerToUnmuteAudio = false;})" DataSource="YesNo" Text="Allow Viewer To Unmute Audio"></ComboBox>
-                            </div>
-                        </div>
-                    </div>
-                </form>
-            </div>
-            <div style="padding:10px; padding-left:15px;padding-right:15px;width:100%;">
-                <form>
-                    <div class="row form-group Bordered-Box" style="margin-bottom:0px;">
-                        <div class="row form-group" style="margin-bottom:0px;">
-                            <div class="col-md-12">
-                                <div class="col-md-4">
-                                    <input type="button" value="@TSubmit" class="btn btn-primary fill" @onclick="Sumbit">
-                                </div>
-                                @if (!AddingNew)
-                                {
-                                    <div class="col-md-4">
-                                        <input type="button" value="Delete" class="btn btn-danger fill" @onclick="(() => Delete())">
-                                    </div>
-                                }
-                                <div class="col-md-4">
-                                    <input type="button" value="Cancel" class="btn btn-default fill">
-                                </div>
-                            </div>
+                    }
+                    else if (Ssett.CDNType == CDNType.Github)
+                    {
+                        <div class="Bordered-Box-Section"></div>
+                    }
+                    else if (Ssett.CDNType == CDNType.Firestore)
+                    {
+                        <div class="Bordered-Box-Section"></div>
+                    }
+                </div>
+                <div class="row form-group Bordered-Box">
+                    <h3 class="text-center">Viewer Settings & Info</h3>
+                    <div class="row form-group">
+                        <div class="table-responsive">
+                            <table class="table">
+                                <thead>
+                                </thead>
+                            </table>
                         </div>
                     </div>
-                </form>
+                    <div class="Bordered-Box-Section"></div>
+                    <div class="row form-group">
+                        <div class="col-md-12">
+                            <label for="sl">Allow Viewer Open Camera</label>
+                            <ComboBox CssClass="form-control" Id="svq" SelectedValue="@(Psett.AllowViewerOpenCamera?"Yes":"No")" ValueChanged="@(v => { if (v == "Yes") Psett.AllowViewerOpenCamera = true; if (v == "No") Psett.AllowViewerOpenCamera = false;})" DataSource="YesNo" Text="Allow Viewer Open Camera"></ComboBox>
+                        </div>
+                    </div>
+                    <div class="row form-group">
+                        <div class="col-md-12">
+                            <label for="sl">Allow Viewer To Share Screen</label>
+                            <ComboBox CssClass="form-control" Id="svq" SelectedValue="@(Psett.AllowViewerToShareScreen?"Yes":"No")" ValueChanged="@(v => { if (v == "Yes") Psett.AllowViewerToShareScreen = true; if (v == "No") Psett.AllowViewerToShareScreen = false;})" DataSource="YesNo" Text="Allow Viewer To Share Screen"></ComboBox>
+                        </div>
+                    </div>
+                    <div class="row form-group">
+                        <div class="col-md-12">
+                            <label for="sl">Allow Viewer To Unmute Audio</label>
+                            <ComboBox CssClass="form-control" Id="svq" SelectedValue="@(Psett.AllowViewerToUnmuteAudio?"Yes":"No")" ValueChanged="@(v => { if (v == "Yes") Psett.AllowViewerToUnmuteAudio = true; if (v == "No") Psett.AllowViewerToUnmuteAudio = false;})" DataSource="YesNo" Text="Allow Viewer To Unmute Audio"></ComboBox>
+                        </div>
+                    </div>
+                </div>
+                <div class="row form-group Bordered-Box">
+                    <div class="row form-group">
+                            <div class="col-md-4">
+                                <input type="button" value="@TSubmit" class="btn btn-success fill" @onclick="Sumbit">
+                            </div>
+                            @if (!AddingNew)
+                            {
+                                <div class="col-md-4">
+                                    <input type="button" value="Delete" class="btn btn-danger fill" @onclick="Delete">
+                                </div>
+                            }
+                            <div class="col-md-4">
+                                <input type="button" value="Cancel" class="btn btn-default fill">
+                            </div>
+                    </div>
+                </div>
+            </form>
             </div>
         }
         else
@@ -156,7 +150,7 @@
 
     public int roomID;
 
-    public string TSubmit;
+    public string TSubmit = "Create";
 
     string msg = "";
     MeetingStreamerSettings Ssett;
@@ -245,7 +239,8 @@
 
     public void Sumbit()
     {
-
+        var stremerJSONen64 = Core.ObjectToJSON(Ssett);
+        var viewerJSONen64 = Core.ObjectToJSON(Psett);
     }
     public void Delete()
     {

@@ -11,6 +11,7 @@ namespace Vidusaviya.shasra
 
 
     // Simple classes because JSON -> AES128 -> BASE64
+    [Serializable]
     public class MeetingStreamerSettings
     {
         public int ID { get; set; }
@@ -30,6 +31,7 @@ namespace Vidusaviya.shasra
 
         public EncryptionType EncType { get; set; } = EncryptionType.None;
         public string Key { get; set; }
+
         public AesRij GetAes()
         {
             int ChunkSize;
@@ -60,7 +62,6 @@ namespace Vidusaviya.shasra
 
             return new AesRij(Key, ChunkSize, mode);
         }
-
         //Auto Gen
         public MeetingPeerSettings PeerSettings()
         {
@@ -97,7 +98,7 @@ namespace Vidusaviya.shasra
             return meetingPeerSettings;
         }
     }
-
+    [Serializable]
     public class MeetingPeerSettings
     {
         public int ID { get; set; }//ID
@@ -109,7 +110,7 @@ namespace Vidusaviya.shasra
         public bool AllowViewerToShareScreen { get; set; }
         public bool AllowViewerToUnmuteAudio { get; set; }
     }
-
+    [Serializable]
     public class GithubInfo
     {
         public string ps { get; set; }
@@ -119,14 +120,14 @@ namespace Vidusaviya.shasra
         public string Path { get; set; }
         public string PeerURLPrefix => $"https://raw.githubusercontent.com/{UName}/{Repo}/{Branch}/{Path}";
     }
-
+    [Serializable]
     public class FireBaseInfo
     {
         public string JsonCredentials { get; set; }
         public string ProjectId { get; set; }
         public string Collection { get; set; }
     }
-
+    [Serializable]
     public class FTPInfo
     {
         public string Server { get; set; }
@@ -134,16 +135,14 @@ namespace Vidusaviya.shasra
         public string Password { get; set; }
         public string Path { get; set; }
     }
-
-
+    [Serializable]
     public enum CDNType
     {
         FTP, //Host yourself
         Github, //Free Forever, 1-6 s delay
         Firestore //Fastets, Comming soon
     }
-
-
+    [Serializable]
     public enum EncryptionType
     {
         None, //Fastest

@@ -33,8 +33,16 @@
                                 }
                                 else
                                 {
-                                    <h4 style="color:white">Opps!!! Your Have To Wait Until Meeting Started!</h4>
-                                    <p><a class="btn btn-danger" @onclick="LeaveMeeting"><i class="fa fa-times-circle" style="padding-right:8px;"></i>Leave Meeting Now</a></p>
+                                    if (string.IsNullOrWhiteSpace(Name) && MeetingStarted)
+                                    {
+                                        <h4 style="color:white">Opps!!! Your Have To Enter Your Name First!</h4>
+                                        <p><a class="btn btn-danger" @onclick="LeaveMeeting"><i class="fa fa-times-circle" style="padding-right:8px;"></i>Leave Meeting Now</a><a class="btn btn-outline btn-success" data-toggle="modal" data-target="#nameModal"><i class="fa fa-users" style="padding-right:8px;"></i>Enter Name</a></p>
+                                    }
+                                    else
+                                    {
+                                        <h4 style="color:white">Opps!!! Your Have To Wait Until Meeting Started!</h4>
+                                        <p><a class="btn btn-danger" @onclick="LeaveMeeting"><i class="fa fa-times-circle" style="padding-right:8px;"></i>Leave Meeting Now</a></p>
+                                    }
                                 }
                             </div>
                         </div>
@@ -195,7 +203,7 @@
 
 @code {
     public bool IsHoster = false;
-    public bool MeetingStarted = false;
+    public bool MeetingStarted = true;
     public bool Muted = false;
     public bool SharingCamerea = false;
     public bool SharingSceren = false;
@@ -238,15 +246,14 @@
         Reset();
     }
 
-    protected override void OnAfterRender(bool firstRender)
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        base.OnAfterRender(firstRender);
-        if (firstRender&& !IsHoster)
+        await base.OnAfterRenderAsync(firstRender);
+        if (firstRender && !IsHoster)
         {
-            js.InvokeAsync<string>("showModal", "#nameModal");
+            await js.InvokeAsync<string>("showModal", "#nameModal");
         }
     }
-
     public void Reset()
     {
         if (IsHoster)

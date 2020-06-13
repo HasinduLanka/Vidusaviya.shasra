@@ -68,7 +68,7 @@ function initChatBox() {
 
 }
 
-function showModal(id) {
+window.showModal = async (id) => {
     $(id).modal('show');
     console.log("Show Modal");
 }
