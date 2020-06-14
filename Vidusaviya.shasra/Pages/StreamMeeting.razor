@@ -32,28 +32,21 @@
 
             <hr />
             <div class="row">
-                <div class="col-md-4">
-                    <center class="Bordered-Box">
-                        <h6>Live Feed</h6>
-                        <video id="live" autoplay muted></video>
-                    </center>
+                <div>
+                    <h6>Live Feed</h6>
+                    <video id="live" autoplay muted></video>
                 </div>
-                <div class="col-md-4">
-                    <center class="Bordered-Box">
-                        <h6>Compressed Feed</h6>
-                        <canvas id="MidCanvas"></canvas>
-                        <h6>@(IsLiveReady ? "⬤":"⏹")</h6>
-                    </center>
+                <div>
+                    <h6>Compressed Feed</h6>
+                    <canvas id="MidCanvas"
+                            style="width: 100%; height: 100%; margin: 0px; border: 0; padding: 0px; display: block;">
+                    </canvas>
+                    <h6>@(IsLiveReady ? "⬤":"⏹")</h6>
                 </div>
             </div>
-            <hr />
-            <div class="row">
-                <div class="col-md-6">
-                    <center class="Bordered-Box">
-                        <h5>Peer simulation</h5>
-                        <video id="Viewer" width="1280" height="720" autoplay controls controlsList="nodownload" preload="auto"></video>
-                    </center>
-                </div>
+            <div>
+                <h5>Peer simulation</h5>
+                <video id="Viewer" width="1280" height="720" autoplay controls controlsList="nodownload" preload="auto"></video>
             </div>
         </div>
     </div>

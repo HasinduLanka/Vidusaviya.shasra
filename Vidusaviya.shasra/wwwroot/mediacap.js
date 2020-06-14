@@ -1,10 +1,9 @@
-﻿
-var SegmentLength = 4000;
+﻿var SegmentLength = 4000;
+const mime = 'video/webm; codecs="opus,vp8"';
 
 var Live;
 var LiveStream;
 var LiveReady = false;
-
 
 var midcanvas;
 
@@ -15,155 +14,145 @@ var recordedChunks = [];
 var ChunkCount = 0;
 
 var Viewer;
-var Playlist = [];
 var IsPlaying = false;
 var mediaSource;
-var msurl;
 var sourceBuffer;
 
 window.InitializeViewer = async () => {
-
     console.log("InitializeViewer");
 
-    Viewer = document.getElementById('Viewer');
-
-    //mediaSource = new MediaSource();
-    //msurl = URL.createObjectURL(mediaSource);
-    //Viewer.src = msurl;
-    //Viewer.crossOrigin = 'anonymous';
-    //
-
-    //sourceBuffer = null;
-
-    //mediaSource.addEventListener("sourceopen", function () {
-    //    // NOTE: Browsers are VERY picky about the codec being EXACTLY
-    //    // right here. Make sure you know which codecs you're using!
-    //    sourceBuffer = mediaSource.addSourceBuffer("video/webm; codecs=\"opus,vp8\"");
-    //    sourceBuffer.mode = 'sequence';
-
-    //    // If we requested any video data prior to setting up the SourceBuffer,
-    //    // we want to make sure we only append one blob at a time
-    //    sourceBuffer.addEventListener("updateend", appendToSourceBuffer);
-    //});
-
-
-
-    Viewer.addEventListener('ended', (event) => {
-
-        if (Playlist.length == 0) {
-            IsPlaying = false;
-            console.log('Cam Video end');
-        }
-        else {
-            // appendToSourceBuffer();
-            Viewer.src = Playlist.shift();
-            Viewer.play();
-            console.log('Cam Video Replaying');
-        }
-    });
-
-    Viewer.addEventListener('error', () => {
+    Viewer = document.getElementById("Viewer");
+    Viewer.addEventListener("error", () => {
         IsPlaying = false;
-        console.log('Cam Video Error');
+        console.log("Viewer Error");
+        ResetViewer();
+    });
+    Viewer.addEventListener("ended", event => {
+        IsPlaying = false;
+        console.log("Viewer end");
     });
 
+    midcanvas = document.getElementById("MidCanvas");
+    var ctx = midcanvas.getContext("2d");
+
+    Viewer.addEventListener(
+        "play",
+        function () {
+            var $this = this; //cache
+
+            (function loop() {
+                if (!$this.paused && !$this.ended) {
+                    if ($this.videoWidth !== 0) {
+                        midcanvas.width = window.innerWidth;
+                        midcanvas.height =
+                            (midcanvas.width * $this.videoHeight) / $this.videoWidth;
+                        ctx.drawImage($this, 0, 0, midcanvas.width, midcanvas.height);
+                    }
+                }
+                setTimeout(loop, 1000 / 8); // drawing at 8 fps
+            })();
+        },
+        0
+    );
+
+    ResetViewer();
     // Viewer.oncanplay = e => Viewer.play();
+};
 
+async function ResetViewer() {
+    IsPlaying = false;
 
-    // var ctx = midcanvas.getContext('2d');
+    var ms = new MediaSource();
+    ms.onsourceopen = ev => {
+        console.log("sourceopen");
 
+        var sb = ms.addSourceBuffer(mime);
 
+        sb.mode = "sequence";
+        // sb.onupdate = ev => console.info("update", ev);
+        // sb.onabort = ev => console.warn("ABORT", ev);
+        // sb.onerror = ev => console.error("ERROR", ev);
 
-    //Viewer.addEventListener('play', function () {
-    //    var $this = this; //cache
+        sb.onupdateend = ev => {
+            if (ChangingTrack) {
+                ChangingTrack = false;
+                ResetViewer();
+                console.log("Track Changed");
+            }
 
-    //    (function loop() {
-    //        if (!$this.paused && !$this.ended) {
-    //            midcanvas.height = $this.videoHeight;
-    //            midcanvas.width = $this.videoWidth;
-    //            ctx.drawImage($this, 0, 0, $this.videoWidth, $this.videoHeight);
-    //            setTimeout(loop, 1000 / 16); // drawing at 8 fps
-    //        }
-    //    })();
-    //}, 0);
+            const endTime = sb.buffered.end(sb.buffered.length - 1);
+            console.info(`updateend, end is now ${endTime}`, ev);
+        };
+
+        sourceBuffer = sb;
+    };
+
+    console.log("SRC");
+    Viewer.src = URL.createObjectURL(ms);
+    console.log("SRC2");
+    Viewer.play();
+    mediaSource = ms;
+    IsPlaying = true;
 }
 
-
 window.InitializeStreamer = async () => {
-
     console.log("InitializeStreamer");
 
     LiveReady = false;
-    Live = document.getElementById('live');
-
-    midcanvas = document.getElementById('MidCanvas');
-
-}
-
+    Live = document.getElementById("live");
+};
 
 window.OpenCam = async () => {
-    var CamFace = 'F'
+    var CamFace = "F";
     var frontCam = false;
-    if (CamFace == 'F') {
-        frontCam = true
+    if (CamFace === "F") {
+        frontCam = true;
     }
 
     LiveReady = false;
 
     // Get access to the camera!
     if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-        navigator.mediaDevices.getUserMedia({
-            video: {
-                width: { min: 360, ideal: 640, max: 720 },
-                height: { min: 270, ideal: 360, max: 480 },
-                facingMode: (frontCam ? "user" : "environment"),
-                frameRate: { ideal: 6, max: 8 }
-            }, audio: {
-                echoCancellation: true
-            }
-        }).then(
-            function (stream) {
-
+        navigator.mediaDevices
+            .getUserMedia({
+                video: {
+                    width: { min: 360, ideal: 640, max: 720 },
+                    height: { min: 270, ideal: 360, max: 480 },
+                    facingMode: frontCam ? "user" : "environment",
+                    frameRate: { ideal: 6, max: 8 }
+                },
+                audio: {
+                    echoCancellation: true
+                }
+            })
+            .then(function (stream) {
                 Live.srcObject = stream;
                 LiveStream = stream;
 
                 LiveReady = true;
                 Live.play();
 
-                var ctx = midcanvas.getContext('2d');
-
-                Live.addEventListener('play', function () {
-                    var $this = this; //cache
-
-                    (function loop() {
-                        if (!$this.paused && !$this.ended) {
-                            midcanvas.height = $this.videoHeight;
-                            midcanvas.width = $this.videoWidth;
-                            ctx.drawImage($this, 0, 0, $this.videoWidth, $this.videoHeight);
-                            setTimeout(loop, 1000 / 16); // drawing at 8 fps
-                        }
-                    })();
-                }, 0);
-
-
                 console.log("Res " + Live.videoWidth + "x" + Live.videoHeight);
-
             });
     }
-}
+};
 
 window.IsLiveReady = async () => {
-    if (LiveReady == true) { return "R" }
-    else { return "N" }
-}
-
-
+    if (LiveReady === true) {
+        return "R";
+    } else {
+        return "N";
+    }
+};
 
 window.CloseLive = async () => {
-
     LiveReady = false;
-    LiveStream = midcanvas.captureStream(8);
 
+    if (mediaSource) {
+        mediaSource.endOfStream();
+    }
+
+    LiveStream = midcanvas.captureStream(8);
 
     var StopCount = 0;
     if (Live.srcObject) {
@@ -173,151 +162,171 @@ window.CloseLive = async () => {
         });
     }
     return StopCount.toString();
-}
-
+};
 
 window.StartStreaming = async (videoBitrate, segmentlength) => {
-
-
     recordedChunks = [];
     ChunkCount = 0;
 
     var options = {
         audioBitsPerSecond: 128000,
-        videoBitsPerSecond: videoBitrate,
-        mimeType: 'video/webm'
-    }
+        videoBitsPerSecond: 1024000,
+        mimeType: mime
+    };
 
     IsStreaming = true;
-    SegmentLength = 4000;
+    SegmentLength = 3000;
 
-    if (LiveReady == false) {
+    if (LiveReady === false) {
         LiveStream = midcanvas.captureStream(8);
     }
     mediaRecorder = new MediaRecorder(LiveStream, options);
-    mediaRecorder.ondataavailable = handleDataAvailableCam;
+    mediaRecorder.ondataavailable = handleDataAvailable;
 
-
-    mediaRecorder.start(4000);
+    mediaRecorder.start(SegmentLength);
     console.log(mediaRecorder.state);
     console.log("recorder started");
+};
 
-}
-
-
-
-
-function handleDataAvailableCam(event) {
+function handleDataAvailable(event) {
+    // console.log("DA");
     if (event.data.size > 0) {
         recordedChunks.push(event.data);
         ChunkCount += 1;
 
-        console.log("Camcorder " + mediaRecorder.state + "  #" + ChunkCount + " data read " + (event.data.size) + " B");
+        // mediaRecorder.stop();
+        // mediaRecorder.start(SegmentLength);
+        console.log(
+            "Camcorder " +
+            mediaRecorder.state +
+            "  #" +
+            ChunkCount +
+            " data read " +
+            event.data.size +
+            " B"
+        );
 
         if (IsStreaming) {
+            window.GetRec();
         }
-        
     }
 }
-
-
 
 window.StopStreaming = async () => {
     IsStreaming = false;
     console.log(mediaRecorder.state);
     console.log("recorder stopping");
     mediaRecorder.stop();
-}
-
-
+};
 
 window.GetRec = async () => {
-
-    if (ChunkCount == 0) {
-        return "0";
-    } else if (ChunkCount == 1) {
-        return "1";
-    } else if (ChunkCount > 1) {
+    if (ChunkCount > 0) {
         ChunkCount = 0;
 
         var superBuffer = new Blob(recordedChunks, { type: "video/webm" });
 
-        var blb = window.URL.createObjectURL(superBuffer);
+        //var blb = window.URL.createObjectURL(superBuffer);
 
         recordedChunks = [];
-        //window.AddVideo(blb);
+        await window.AddSeg(superBuffer);
         console.log("Returning superBuffer " + superBuffer.size);
 
-        return blb;
+        return superBuffer;
     }
+    return "";
+};
 
+var ChangingTrack = false;
 
-}
+window.InitTrack = async () => {
+    console.log("InitTrack");
+    mediaRecorder.stop();
+    mediaRecorder.start(SegmentLength);
+    ChangingTrack = true;
 
-
-window.AddVideo = async (blb) => {
-
-    if (IsPlaying == false) {
-
-        Viewer.type = "video/webm";
-        Viewer.src = blb;
-
-        Playlist.push(blb);
-        //appendToSourceBuffer();
+    if (IsPlaying) {
         Viewer.play();
-
-        console.log('Playlist started');
         IsPlaying = true;
     }
-    else {
-        Playlist.push(blb);
-        //appendToSourceBuffer();
-        console.log('Added to playlist');
 
+    return window.GetRec();
+};
+
+window.AddTrack = async blb => {
+    ChangingTrack = true;
+    window.AddSeg(blb);
+};
+
+var segc = 0;
+window.AddSeg = async blb => {
+    if (IsPlaying) {
+        Viewer.play();
+        IsPlaying = true;
     }
 
-}
+    // segc++;
+    // if (segc === 4) {
+    //   segc = 0;
+    //   return;
+    // }
 
-// 5. Use `SourceBuffer.appendBuffer()` to add all of your chunks to the video
-function appendToSourceBuffer() {
-    if (
-        mediaSource.readyState === "open" &&
-        sourceBuffer &&
-        sourceBuffer.updating === false &&
-        Playlist.length != 0
-    ) {
+    await window.RecieveBlob(blb);
+    // if (IsPlaying === false) {
 
-        fetch(Playlist.shift()).then(response => response.arrayBuffer().then(
-            ab => sourceBuffer.appendBuffer(ab)
-        ));
+    //   Playlist.push(blb);
+    //   //appendToSourceBuffer();
+    //   Viewer.play();
 
+    //   console.log("Playlist started");
+    //   IsPlaying = true;
+    // } else {
+    //   Playlist.push(blb);
+    //   //appendToSourceBuffer();
+    //   console.log("Added to playlist");
+    // }
+};
 
-        //B64toBlob(Playlist.shift()).then(function (B) {
-        //     B.arrayBuffer().then(function (AB) {
-        //    sourceBuffer.appendBuffer(window.URL.createObjectURL(B));
-        //     });
-        //});
+var cache = []; // minicache
+window.RecieveBlob = async blb => {
+    let data = await Promise.resolve().then(() => blobToArray(blb));
 
+    // mediaSource aren't ready
+    if (!sourceBuffer || sourceBuffer.updating) {
+        cache.push(...data);
+        console.log("Cached " + data.length);
+        return;
+    }
+    if (cache.length) {
+        console.log("Recv " + data.length);
+        data = [...cache, ...data];
+        cache = [];
     }
 
-    // Limit the total buffer size to 20 minutes
-    // This way we don't run out of RAM
-    if (
-        Viewer.buffered.length &&
-        Viewer.buffered.end(0) - Viewer.buffered.start(0) > 240
-    ) {
-        sourceBuffer.remove(0, Viewer.buffered.end(0) - 240)
+    console.log("Buff " + data.length);
+    sourceBuffer.appendBuffer(Uint8Array.from(data));
+    console.log(`Appended buffer. Updating=${sourceBuffer.updating}`);
+};
+
+// some support function
+function blobToArray(blob) {
+    const reader = new FileReader();
+    let callback, fallback;
+    let promise = new Promise((c, f) => {
+        callback = c;
+        fallback = f;
+    });
+
+    function onLoadEnd(e) {
+        reader.removeEventListener("loadend", onLoadEnd, false);
+        if (e.error) fallback(e.error);
+        else callback([...new Uint8Array(reader.result)]);
     }
+
+    reader.addEventListener("loadend", onLoadEnd, false);
+    reader.readAsArrayBuffer(blob);
+    return promise;
 }
 
-function B64toBlob(b64) {
-    return fetch(b64).then(r => r.blob());
-}
-
-
-window.SayHi = async (name) => {
+window.SayHi = async name => {
     return "Hi " + name;
-}
-
-
-
+};
