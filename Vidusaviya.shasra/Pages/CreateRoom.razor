@@ -1,0 +1,298 @@
+﻿@inject Microsoft.AspNetCore.Components.NavigationManager NavigationManager;
+@page "/CreateMeeting"
+    <div class="container">
+        @if (!Reject)
+        {
+            <div style="padding:10px; padding-left:15px;padding-right:15px;width:100%;">
+                @if (!string.IsNullOrWhiteSpace(msg))
+                {
+                    <div class="alert alert-danger" role="alert">@msg</div>
+                }
+            <form>
+                <div class="row form-group Bordered-Box">
+                    <h3 class="text-center">Meeting Room Details</h3>
+                    <div class="row form-group">
+                        <div class="col-md-12">
+                            <label for="rsif">Meeting ID</label>
+                            <input type="text" id="rsif" class="form-control" readonly required value="@Ssett.ID">
+                        </div>
+                    </div>
+                    <div class="row form-group">
+                        <div class="col-md-12">
+                            <label for="actT">Title</label>
+                            <input type="text" id="actT" class="form-control" placeholder="Room Title..." required @bind="Ssett.Name">
+                        </div>
+                    </div>
+                    <div class="row form-group">
+                        <div class="col-md-12">
+                            <label for="ades">Description</label>
+                            <textarea id="ades" class="form-control" @bind="Ssett.Description" placeholder="Enter Your Room Description..." rows="3"></textarea>
+                        </div>
+                    </div>
+                </div>
+                <div class="row form-group Bordered-Box">
+                    <h3 class="text-center">Video & Audio Settings</h3>
+                    <div class="row form-group">
+                        <div class="col-md-6">
+                            <label for="res">Camera Video Quality</label>
+                            <ComboBox CssClass="form-control" Id="svq" SelectedValue="@CamVideoresolution" ValueChanged="CamVideoresolution_Changed" DataSource="Videoresolutions" Text="Camera Video Quality"></ComboBox>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="fp">Camera Video FPS</label>
+                            <ComboBox CssClass="form-control" Id="svq" SelectedValue="@CamVideoFPS" ValueChanged="CamVideoFPS_Changed" DataSource="VideoFPS" Text="Camera Video FPS"></ComboBox>
+                        </div>
+                    </div>
+                    <div class="row form-group">
+                        <div class="col-md-6">
+                            <label for="res">Screen Video Quality</label>
+                            <ComboBox CssClass="form-control" Id="svq" SelectedValue="@ScreenVideoresolution" ValueChanged="ScreenVideoresolution_Changed" DataSource="Videoresolutions" Text="Screen Video Quality"></ComboBox>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="fp">Screen Video FPS</label>
+                            <ComboBox CssClass="form-control" Id="svq" SelectedValue="@ScreenVideoFPS" ValueChanged="ScreenVideoFPS_Changed" DataSource="VideoFPS" Text="Screen Video FPS"></ComboBox>
+                        </div>
+                    </div>
+                    <div class="row form-group">
+                        <div class="col-md-6">
+                            <label for="sl">Segment Length</label>
+                            <ComboBox CssClass="form-control" Id="svq" SelectedValue="@Segmentlength" ValueChanged="SegmentLength_Changed" DataSource="SegMentLengths" Text="Segment Length"></ComboBox>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="actT">Encryption Type</label>
+                            <ComboBox CssClass="form-control" Id="svq" SelectedValue="@Ssett.EncType.ToString()" ValueChanged="(s=> Ssett.EncType=Enum.Parse<EncryptionType>(s))" DataSource="Enum.GetNames(typeof(EncryptionType)).ToList()" Text="Camera Video FPS"></ComboBox>
+                        </div>
+                    </div>
+                </div>
+                <div class="row form-group Bordered-Box">
+                    <h3 class="text-center">Host Settings</h3>
+                    <div class="row form-group">
+                        <div class="col-md-12">
+                            <label for="res">Content Delivery Network Type</label>
+                            <ComboBox CssClass="form-control" Id="svq" SelectedValue="@Ssett.CDNType.ToString()" ValueChanged="(s=> Ssett.CDNType=Enum.Parse<CDNType>(s))" DataSource="Enum.GetNames(typeof(CDNType)).ToList()" Text="Camera Video FPS"></ComboBox>
+                        </div>
+                    </div>
+                    @if (Ssett.CDNType == CDNType.FTP)
+                    {
+                        <div class="Bordered-Box-Section"></div>
+                    }
+                    else if (Ssett.CDNType == CDNType.Github)
+                    {
+                        <div class="Bordered-Box-Section"></div>
+                    }
+                    else if (Ssett.CDNType == CDNType.Firestore)
+                    {
+                        <div class="Bordered-Box-Section"></div>
+                    }
+                </div>
+                <div class="row form-group Bordered-Box">
+                    <h3 class="text-center">Viewer Settings & Info</h3>
+                    <div class="row form-group">
+                        <div class="table-responsive">
+                            <table class="table">
+                                <thead>
+                                </thead>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="Bordered-Box-Section"></div>
+                    <div class="row form-group">
+                        <div class="col-md-12">
+                            <label for="sl">Allow Viewer Open Camera</label>
+                            <ComboBox CssClass="form-control" Id="svq" SelectedValue="@(Psett.AllowViewerOpenCamera?"Yes":"No")" ValueChanged="@(v => { if (v == "Yes") Psett.AllowViewerOpenCamera = true; if (v == "No") Psett.AllowViewerOpenCamera = false;})" DataSource="YesNo" Text="Allow Viewer Open Camera"></ComboBox>
+                        </div>
+                    </div>
+                    <div class="row form-group">
+                        <div class="col-md-12">
+                            <label for="sl">Allow Viewer To Share Screen</label>
+                            <ComboBox CssClass="form-control" Id="svq" SelectedValue="@(Psett.AllowViewerToShareScreen?"Yes":"No")" ValueChanged="@(v => { if (v == "Yes") Psett.AllowViewerToShareScreen = true; if (v == "No") Psett.AllowViewerToShareScreen = false;})" DataSource="YesNo" Text="Allow Viewer To Share Screen"></ComboBox>
+                        </div>
+                    </div>
+                    <div class="row form-group">
+                        <div class="col-md-12">
+                            <label for="sl">Allow Viewer To Unmute Audio</label>
+                            <ComboBox CssClass="form-control" Id="svq" SelectedValue="@(Psett.AllowViewerToUnmuteAudio?"Yes":"No")" ValueChanged="@(v => { if (v == "Yes") Psett.AllowViewerToUnmuteAudio = true; if (v == "No") Psett.AllowViewerToUnmuteAudio = false;})" DataSource="YesNo" Text="Allow Viewer To Unmute Audio"></ComboBox>
+                        </div>
+                    </div>
+                </div>
+                <div class="row form-group Bordered-Box">
+                    <div class="row form-group">
+                            <div class="col-md-4">
+                                <input type="button" value="@TSubmit" class="btn btn-success fill" @onclick="Sumbit">
+                            </div>
+                            @if (!AddingNew)
+                            {
+                                <div class="col-md-4">
+                                    <input type="button" value="Delete" class="btn btn-danger fill" @onclick="Delete">
+                                </div>
+                            }
+                            <div class="col-md-4">
+                                <input type="button" value="Cancel" class="btn btn-default fill">
+                            </div>
+                    </div>
+                </div>
+            </form>
+            </div>
+        }
+        else
+        {
+            <div class="alert alert-danger" role="alert">
+                @msg  <a href="/DashBoard/1" class="alert-link">Click Here To Go To Dashboard</a>.
+            </div>
+        }
+    </div>
+
+
+
+@code {
+
+    public bool AddingNew = false;
+    public bool Reject = false;
+
+    public int roomID;
+
+    public string TSubmit = "Create";
+
+    string msg = "";
+    MeetingStreamerSettings Ssett;
+    MeetingPeerSettings Psett;
+    [Parameter]
+    public string QSID { get; set; }
+
+    List<string> Videoresolutions = new List<string> {
+        "256 × 144 [144p]",
+        "426 × 240 [240p]",
+        "480 × 360 [360p]",
+        "640 × 480 [480p]",
+        "1280 × 720 [720p]",
+        "1280 × 768 [768p]",
+        "1680 × 1050 [1050p]",
+        "1920 × 1080 [1080p]",
+    };
+    List<string> VideoFPS = new List<string>
+{
+        "8",
+        "12",
+        "16",
+        "20",
+        "24",
+        "30"
+    };
+    List<string> SegMentLengths = new List<string>
+{
+        "0.5",
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "8",
+        "10",
+        "12",
+        "15",
+        "20",
+        "25",
+        "30",
+        "40",
+        "50",
+        "60",
+        "80",
+        "100",
+        "120"
+    };
+    List<string> YesNo = new List<string>
+{
+        "Yes",
+        "No"
+    };
+
+    string CamVideoresolution;
+    string ScreenVideoresolution;
+
+    string CamVideoFPS;
+    string ScreenVideoFPS;
+
+    string Segmentlength;
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        Ssett = new MeetingStreamerSettings();
+        Psett = new MeetingPeerSettings();
+        if (QSID == null || QSID == "new")
+        {
+
+        }
+        else
+        {
+            if (int.TryParse(QSID, out roomID))
+            {
+
+            }
+            else
+            {
+                Reject = true;
+                msg = $"Invalid Room ID... Room ID = {QSID}...";
+                return;
+            }
+        }
+    }
+
+    public void Sumbit()
+    {
+        var stremerJSONen64 = Core.ObjectToJSON(Ssett);
+        var viewerJSONen64 = Core.ObjectToJSON(Psett);
+    }
+    public void Delete()
+    {
+        NavigationManager.NavigateTo(@"\DashBoard\1");
+    }
+
+    public void CamVideoresolution_Changed(string s)
+    {
+        CamVideoresolution = s;
+        if (CamVideoresolution == Videoresolutions[0]) Ssett.CamResolution = 144;
+        else if (CamVideoresolution == Videoresolutions[1]) Ssett.CamResolution = 240;
+        else if (CamVideoresolution == Videoresolutions[2]) Ssett.CamResolution = 360;
+        else if (CamVideoresolution == Videoresolutions[3]) Ssett.CamResolution = 480;
+        else if (CamVideoresolution == Videoresolutions[4]) Ssett.CamResolution = 720;
+        else if (CamVideoresolution == Videoresolutions[5]) Ssett.CamResolution = 768;
+        else if (CamVideoresolution == Videoresolutions[6]) Ssett.CamResolution = 1050;
+        else if (CamVideoresolution == Videoresolutions[7]) Ssett.CamResolution = 1080;
+    }
+    public void ScreenVideoresolution_Changed(string s)
+    {
+        ScreenVideoresolution = s;
+        if (ScreenVideoresolution == Videoresolutions[0]) Ssett.ScreenResolution = 144;
+        else if (ScreenVideoresolution == Videoresolutions[1]) Ssett.ScreenResolution = 240;
+        else if (ScreenVideoresolution == Videoresolutions[2]) Ssett.ScreenResolution = 360;
+        else if (ScreenVideoresolution == Videoresolutions[3]) Ssett.ScreenResolution = 480;
+        else if (ScreenVideoresolution == Videoresolutions[4]) Ssett.ScreenResolution = 720;
+        else if (ScreenVideoresolution == Videoresolutions[5]) Ssett.ScreenResolution = 768;
+        else if (ScreenVideoresolution == Videoresolutions[6]) Ssett.ScreenResolution = 1050;
+        else if (ScreenVideoresolution == Videoresolutions[7]) Ssett.ScreenResolution = 1080;
+    }
+    public void CamVideoFPS_Changed(string s)
+    {
+        CamVideoFPS = s;
+        if (int.TryParse(ScreenVideoFPS, out int v))
+        {
+            Ssett.CamFPS = v;
+        }
+    }
+    public void ScreenVideoFPS_Changed(string s)
+    {
+        ScreenVideoFPS = s;
+        if (int.TryParse(ScreenVideoFPS, out int v))
+        {
+            Ssett.ScreenFPS = v;
+        }
+    }
+    public void SegmentLength_Changed(string s)
+    {
+        Segmentlength = s;
+        if (float.TryParse(Segmentlength, out float v))
+        {
+            Ssett.SegmentLength = v;
+        }
+    }
+}
