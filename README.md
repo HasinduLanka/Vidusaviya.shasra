@@ -41,7 +41,7 @@ We used WebM format to record and play media. We selected it for the maximum com
 **Contributions are highly appreciated**  
   
     
-**Developers**
+**Developers**  
 *[Hasindu Lanka](https://github.com/HasinduLanka)  
 [Harindu Wijesinghe](https://github.com/hariwij)*   
 
